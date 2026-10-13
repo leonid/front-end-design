@@ -114,9 +114,9 @@ function startSession(mode: StudyMode, topic?: string): void {
     index: 0,
     revealed: mode === "learn",
   };
-  if (locale === "bg") {
+  if (mode === "learn") {
     getRoot().innerHTML = `<main class="main-content"><p role="status">${text("app.loading")}</p></main>`;
-    void loadQuestionTranslations(locale)
+    void loadQuestionTranslations("bg")
       .then(render)
       .catch((error: unknown) => {
         progressWarning = error instanceof Error ? error.message : text("progress.readError");
@@ -277,6 +277,7 @@ function renderSession(): string {
   const current = session.questions[session.index];
   if (!current) return renderHome();
   const { text: currentText, fallback } = questionCopy(current);
+  const bulgarianText = current.translations.bg;
   const modeLabel = session.mode === "topic"
     ? topicLabel(current.topic, current.topicLabel)
     : session.mode === "learn"
@@ -305,33 +306,49 @@ function renderSession(): string {
       <div class="progress-track" role="progressbar" aria-label="${text("accessibility.sessionProgress")}" aria-valuemin="0" aria-valuemax="${session.questions.length}" aria-valuenow="${session.index}">
         <span style="width:${(session.index / session.questions.length) * 100}%"></span>
       </div>
-      <section class="question-area">
+      <section class="question-area ${session.mode === "learn" ? "learning-area" : ""}">
         <div class="eyebrow">${escapeHtml(modeLabel.toUpperCase())} <span class="dot-separator">·</span> ${text("session.question", { number: session.index + 1 })}</div>
-        ${fallback ? `<div class="notice translation-notice" role="status">${text("translation.fallback")}</div>` : ""}
         <article class="question-card">
           <div class="question-topline"><span class="topic-pill">${escapeHtml(topicLabel(current.topic, current.topicLabel))} ${priorityBadge(current.importance)}</span><span class="question-number">${session.index + 1} / ${session.questions.length}</span></div>
-          <h1>${escapeHtml(currentText.prompt)}</h1>
+          ${session.mode === "learn"
+            ? `<div class="language-columns">
+                <section class="language-panel" lang="en" aria-label="${text("session.english")}">
+                  <div class="language-panel-title">${text("session.english")}</div>
+                  <h1>${escapeHtml(current.prompt)}</h1>
+                  <div class="answer-content">${renderAnswer(current.answer)}</div>
+                </section>
+                <section class="language-panel" lang="bg" aria-label="${text("session.bulgarian")}">
+                  <div class="language-panel-title">${text("session.bulgarian")}</div>
+                  ${bulgarianText
+                    ? `<h1>${escapeHtml(bulgarianText.prompt)}</h1><div class="answer-content">${renderAnswer(bulgarianText.answer)}</div>`
+                    : `<div class="notice translation-notice" role="status">${text("session.translationMissing")}</div>`}
+                </section>
+              </div>
+              <div class="learn-controls">
+                <button class="button button-secondary" id="previous-question" ${session.index === 0 ? "disabled" : ""}>${text("session.previous")}</button>
+                <span class="learn-position">${text("session.position", { current: session.index + 1, total: session.questions.length })}</span>
+                <button class="button button-primary" id="next-question">${session.index === session.questions.length - 1 ? text("session.finishTopic") : text("session.next")} <span aria-hidden="true">→</span></button>
+              </div>
+              ${current.sources.length ? `<div class="source-list"><strong>${text("session.sources")}</strong>${current.sources.map((source) => /^https?:\/\/[^\s]+$/i.test(source)
+                ? `<a href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source)}</a>`
+                : `<span>${escapeHtml(source)}</span>`
+              ).join("")}</div>` : ""}`
+            : `<h1>${escapeHtml(currentText.prompt)}</h1>${fallback ? `<div class="notice translation-notice" role="status">${text("translation.fallback")}</div>` : ""}
           ${session.revealed
-            ? `<div class="answer-wrap"><div class="answer-label"><span class="answer-spark">✳</span> ${session.mode === "learn" ? text("session.studyNotes") : text("session.answerNotes")}</div><div class="answer-content">${renderAnswer(currentText.answer)}</div>
+            ? `<div class="answer-wrap"><div class="answer-label"><span class="answer-spark">✳</span> ${text("session.answerNotes")}</div><div class="answer-content">${renderAnswer(currentText.answer)}</div>
               ${current.sources.length ? `<div class="source-list"><strong>${text("session.sources")}</strong>${current.sources.map((source) => /^https?:\/\/[^\s]+$/i.test(source)
                 ? `<a href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source)}</a>`
                 : `<span>${escapeHtml(source)}</span>`
               ).join("")}</div>` : ""}
               </div>
-              ${session.mode === "learn"
-                ? `<div class="learn-controls">
-                    <button class="button button-secondary" id="previous-question" ${session.index === 0 ? "disabled" : ""}>${text("session.previous")}</button>
-                    <span class="learn-position">${text("session.position", { current: session.index + 1, total: session.questions.length })}</span>
-                    <button class="button button-primary" id="next-question">${session.index === session.questions.length - 1 ? text("session.finishTopic") : text("session.next")} <span aria-hidden="true">→</span></button>
-                  </div>`
-                : `<div class="rating-prompt" tabindex="-1">${text("session.howFeel")}</div>
+              <div class="rating-prompt" tabindex="-1">${text("session.howFeel")}</div>
               <div class="rating-grid">
                 <button class="rating-button rating-again" data-rating="again"><strong>${text("session.again")}</strong><span>${text("session.againHint")}</span></button>
                 <button class="rating-button rating-hard" data-rating="hard"><strong>${text("session.hard")}</strong><span>${text("session.hardHint")}</span></button>
                 <button class="rating-button rating-know" data-rating="know"><strong>${text("session.know")}</strong><span>${text("session.knowHint")}</span></button>
-              </div>`}`
+              </div>`
             : `<div class="think-prompt"><span aria-hidden="true">✎</span><span>${text("session.thinkFirst")}</span></div>
-              <button class="button button-primary reveal-button" id="reveal-answer">${text("session.reveal")} <span aria-hidden="true">→</span></button>`
+              <button class="button button-primary reveal-button" id="reveal-answer">${text("session.reveal")} <span aria-hidden="true">→</span></button>`}`
           }
         </article>
         <div class="session-bottom">

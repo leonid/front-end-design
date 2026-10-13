@@ -17,7 +17,7 @@ Create a production build with `npm run build`; preview it locally with `npm run
 
 - **Quick review** contains questions whose next review time has arrived.
 - **Weak areas** contains questions last rated **Again** or **Hard**.
-- **Learn** opens a topic in its original question order with answers visible and Previous/Next navigation; finish a topic before moving on.
+- **Learn** opens a topic in its original question order with English and Bulgarian question-and-answer cards side by side and Previous/Next navigation; cards stack on narrower screens.
 - **Quiz** starts a short practice session from a topic, with answers hidden until revealed.
 - **Explore the library** lets you search questions or choose Learn or Quiz for any topic.
 - Quiz and review sessions contain up to 10 questions; learning mode walks through all questions in the selected topic.
