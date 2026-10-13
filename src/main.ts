@@ -53,11 +53,16 @@ function questionCopy(question: typeof questions[number]) {
 
 try {
   progress = loadProgress();
-  learnedQuestions = loadLearnedQuestions();
 } catch (error) {
   progressWarning = error instanceof Error
     ? error.message
     : t(locale, "progress.readError");
+}
+try {
+  learnedQuestions = loadLearnedQuestions();
+} catch (error) {
+  const warning = error instanceof Error ? error.message : t(locale, "progress.readError");
+  progressWarning = progressWarning ? `${progressWarning} ${warning}` : warning;
 }
 
 const escapeHtml = (value: string) =>
@@ -85,6 +90,10 @@ function priorityBadge(importance: Importance): string {
 
 function topicLabel(slug: string, label: string): string {
   return localizedTopicLabel(locale, slug, label);
+}
+
+function viewedQuestionCount(topicSlug: string): number {
+  return questions.filter((question) => question.topic === topicSlug && learnedQuestions.has(question.id)).length;
 }
 
 function filteredQuestions(source: typeof questions): typeof questions {
@@ -299,15 +308,10 @@ function renderHome(): string {
               return `<section class="curriculum-track" aria-label="${escapeHtml(localized.label)}">
                 <div class="track-heading"><div><h3>${escapeHtml(localized.label)}</h3><p>${escapeHtml(localized.description)}</p></div></div>
                 <div class="topic-grid">
-                  ${trackTopics.map((topic, index) => `
-                    ${(() => {
-                      const topicQuestions = questions.filter((question) => question.topic === topic.slug);
-                      const viewedCount = topicQuestions.filter((question) => learnedQuestions.has(question.id)).length;
-                      const isComplete = viewedCount === topic.count;
-                      const progressLabel = isComplete
-                        ? text("home.topicComplete")
-                        : text("home.topicProgress", { viewed: viewedCount, total: topic.count });
-                      return `
+                  ${trackTopics.map((topic, index) => {
+                    const viewedCount = viewedQuestionCount(topic.slug);
+                    const progressLabel = `${text("home.topicProgress", { viewed: viewedCount, total: topic.count })}${viewedCount === topic.count ? ` · ${text("home.topicComplete")}` : ""}`;
+                    return `
                     <article class="topic-card">
                       <span class="topic-card-icon tone-${index % 5}" aria-hidden="true">${["◈", "⌘", "▱", "✳", "◇"][index % 5]}</span>
                       <span class="topic-card-copy">
@@ -323,9 +327,8 @@ function renderHome(): string {
                         <button class="topic-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="topic">${text("home.quiz")}</button>
                       </span>
                     </article>
-                      `;
-                    })()}
-                  `).join("")}
+                    `;
+                  }).join("")}
                 </div>
               </section>`;
             }).join("")}
