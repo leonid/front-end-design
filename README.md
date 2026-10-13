@@ -1,1 +1,62 @@
-# front-end-design
+# Frontend Interview Practice
+
+A small, static question-and-answer study app for frontend interview preparation. Browse topics, search the question bank, reveal an answer when you're ready, and use **Again**, **Hard**, or **Know it** to bring weak questions back into your review queue.
+
+## Try it locally
+
+Requires Node.js 20 or newer.
+
+```sh
+npm install
+npm run dev
+```
+
+Create a production build with `npm run build`; preview it locally with `npm run preview`.
+
+## Study flow
+
+- **Quick review** contains questions whose next review time has arrived.
+- **Weak areas** contains questions last rated **Again** or **Hard**.
+- **Explore the library** lets you search questions or start a practice session from any topic.
+- Each session contains up to 10 questions. Answers stay hidden until revealed.
+- Progress is stored in this browser only. **Again** schedules a question in 10 minutes, **Hard** in one day, and **Know it** in three days. Reset progress from the home screen.
+
+This is a self-study aid, not a scoring system; answer quality and confidence are for you to judge.
+
+## Editing the question bank
+
+The existing question bank is grouped by topic in `questions/<topic>/questions.md`. Keep each question heading in this form so the app can find it:
+
+```md
+### 1. Your interview question?
+
+Write the answer here in Markdown. Code blocks, tables, and lists are supported.
+```
+
+Continue numbering within each file and put a blank line between the question heading and its answer. Add a new topic by creating a folder with a `questions.md` file. Question progress IDs are derived from the topic and question text; changing a question's wording starts its progress over, while rearranging questions does not.
+
+New or migrated content can also use one file per question at `questions/<topic>/<filename>.md`:
+
+```md
+---
+id: stable-question-id
+tags: javascript, fundamentals
+difficulty: intermediate
+sources: https://developer.mozilla.org/
+---
+# Your interview question?
+
+## Answer
+
+Write the answer here in Markdown.
+```
+
+The `id` is required and must be unique within its topic. The tags, difficulty, and sources fields are optional; source links can also be included in the answer. Both formats can coexist. See [PLAN.md](PLAN.md) for the incremental migration and editorial plan.
+
+## Publish on GitHub Pages
+
+The GitHub Actions workflow builds and deploys this repository to Pages when changes are pushed to `main`. In the repository settings, enable **Pages** with **GitHub Actions** as the build and deployment source. The app is configured for the `/front-end-design/` project-site path.
+
+## Content references
+
+General learning resources are collected in [`docs/references.md`](docs/references.md). Add source links to answers as appropriate, and review third-party licensing and attribution before republishing borrowed material.
