@@ -44,6 +44,7 @@ Turn this repository's frontend interview question bank into a fast, simple stud
 - Review correctness, current framework guidance, clarity, useful answer depth, and attribution. Behavioral questions should invite the learner's own examples rather than imply invented personal experience.
 - Keep JavaScript language/runtime questions distinct from TypeScript's static type-system questions; add practical examples and debugging prompts alongside conceptual questions.
 - Maintain a curated topic catalog with curriculum order, study track, and topic importance; allow individual question files to override their inherited importance.
+- Support English and Bulgarian UI/content with English-canonical question IDs, locale-specific Markdown overlays, and English fallback for any untranslated question.
 
 ### 3. GitHub Pages and contributor workflow
 

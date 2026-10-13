@@ -1,5 +1,15 @@
 import { questions, renderAnswer } from "./questions";
-import { importanceLabels, topicCatalog, tracks, type Importance } from "./catalog";
+import { getQuestionText } from "./questions";
+import { topicCatalog, tracks, type Importance } from "./catalog";
+import {
+  getLocale,
+  localizedImportance,
+  localizedTopicLabel,
+  localizedTrack,
+  saveLocale,
+  t,
+  type Locale,
+} from "./i18n";
 import {
   clearProgress,
   getReviewSets,
@@ -30,13 +40,21 @@ let progress: Progress = {};
 let progressWarning = "";
 let searchTerm = "";
 let session: Session | null = null;
+let locale: Locale = getLocale();
+
+const text = (key: Parameters<typeof t>[1], values?: Record<string, string | number>) =>
+  t(locale, key, values);
+
+function questionCopy(question: typeof questions[number]) {
+  return getQuestionText(question, locale);
+}
 
 try {
   progress = loadProgress();
 } catch (error) {
   progressWarning = error instanceof Error
     ? error.message
-    : "Could not read saved review progress.";
+    : t(locale, "progress.readError");
 }
 
 const escapeHtml = (value: string) =>
@@ -59,14 +77,20 @@ const topics = Object.entries(topicCatalog)
     - tracks.findIndex((track) => track.id === b.track) || a.order - b.order);
 
 function priorityBadge(importance: Importance): string {
-  return `<span class="importance-badge importance-${importance}">${importanceLabels[importance]}</span>`;
+  return `<span class="importance-badge importance-${importance}">${localizedImportance(locale, importance)}</span>`;
+}
+
+function topicLabel(slug: string, label: string): string {
+  return localizedTopicLabel(locale, slug, label);
 }
 
 function filteredQuestions(source: typeof questions): typeof questions {
   const term = searchTerm.trim().toLowerCase();
   return term
-    ? source.filter((question) =>
-      `${question.prompt} ${question.answer} ${question.topicLabel} ${question.tags.join(" ")}`.toLocaleLowerCase().includes(term))
+    ? source.filter((question) => {
+      const { text: content } = questionCopy(question);
+      return `${content.prompt} ${content.answer} ${question.topicLabel} ${question.tags.join(" ")}`.toLocaleLowerCase().includes(term);
+    })
     : source;
 }
 
@@ -109,8 +133,8 @@ function recordRating(rating: Rating): void {
     progressWarning = "";
   } catch (error) {
     progressWarning = error instanceof Error
-      ? `Progress could not be saved: ${error.message}`
-      : "Progress could not be saved.";
+      ? text("progress.saveErrorDetail", { message: error.message })
+      : text("progress.saveError");
     render();
     return;
   }
@@ -124,35 +148,36 @@ function recordRating(rating: Rating): void {
 function renderSidebar(): string {
   const reviewSets = getReviewSets(questions, progress);
   return `
-    <aside class="sidebar" aria-label="Study navigation">
-      <button class="brand" id="brand-home" type="button" aria-label="Frontend Interview Practice home">
+    <aside class="sidebar" aria-label="${text("accessibility.studyNavigation")}">
+      <button class="brand" id="brand-home" type="button" aria-label="${text("accessibility.home")}">
         <span class="brand-mark" aria-hidden="true">F</span>
-        <span>Frontend<br />Interview Practice</span>
+        <span>${text("app.name")}</span>
       </button>
-      <div class="nav-label">REVIEW</div>
+      <div class="nav-label">${text("nav.review")}</div>
       <button class="nav-item ${session?.mode === "due" ? "active" : ""}" data-mode="due" ${reviewSets.due.length ? "" : "disabled"}>
-        <span>Quick review</span><span class="nav-count">${reviewSets.due.length}</span>
+        <span>${text("nav.quickReview")}</span><span class="nav-count">${reviewSets.due.length}</span>
       </button>
       <button class="nav-item ${session?.mode === "weak" ? "active" : ""}" data-mode="weak" ${reviewSets.weak.length ? "" : "disabled"}>
-        <span>Weak areas</span><span class="nav-count">${reviewSets.weak.length}</span>
+        <span>${text("nav.weakAreas")}</span><span class="nav-count">${reviewSets.weak.length}</span>
       </button>
-      <div class="nav-label topics-label">LEARNING PATH</div>
+      <div class="nav-label topics-label">${text("nav.learningPath")}</div>
       <button class="nav-item topic-item" data-mode="all">
-        <span>All questions</span><span class="nav-count">${questions.length}</span>
+        <span>${text("nav.allQuestions")}</span><span class="nav-count">${questions.length}</span>
       </button>
       <div class="topic-list">
         ${tracks.map((track) => {
           const trackTopics = topics.filter((topic) => topic.track === track.id);
           if (!trackTopics.length) return "";
-          return `<div class="nav-track-label">${escapeHtml(track.label)}</div>
+          const localized = localizedTrack(locale, track.id, track.label, track.description);
+          return `<div class="nav-track-label">${escapeHtml(localized.label)}</div>
             ${trackTopics.map((topic) => `
               <button class="nav-item topic-item" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="learn">
-                <span>${escapeHtml(topic.label)}</span><span class="nav-count">${topic.count}</span>
+                <span>${escapeHtml(topicLabel(topic.slug, topic.label))}</span><span class="nav-count">${topic.count}</span>
               </button>
             `).join("")}`;
         }).join("")}
       </div>
-      <div class="sidebar-note">Your progress stays on this device.</div>
+      <div class="sidebar-note">${text("nav.localProgress")}</div>
     </aside>
   `;
 }
@@ -164,17 +189,25 @@ function renderHome(): string {
   return `
     <main class="main-content">
       <header class="topbar">
-        <div class="eyebrow">YOUR INTERVIEW PREP, IN ONE PLACE</div>
-        <button class="text-button" id="reset-progress">Reset progress</button>
+        <div class="eyebrow">${text("home.kicker")}</div>
+        <div class="topbar-actions">
+          <label class="language-switch"><span>${text("accessibility.language")}</span>
+            <select id="language-select" aria-label="${text("accessibility.language")}">
+              <option value="en" ${locale === "en" ? "selected" : ""}>${text("accessibility.languageEnglish")}</option>
+              <option value="bg" ${locale === "bg" ? "selected" : ""}>${text("accessibility.languageBulgarian")}</option>
+            </select>
+          </label>
+          <button class="text-button" id="reset-progress">${text("home.reset")}</button>
+        </div>
       </header>
       ${progressWarning ? `<div class="notice" role="status">${escapeHtml(progressWarning)}</div>` : ""}
       <section class="hero">
         <div class="hero-copy">
-          <div class="eyebrow light">A LITTLE PRACTICE GOES A LONG WAY</div>
-          <h1>Feel ready<br />for the conversation.</h1>
-          <p>Practice frontend questions, focus on what feels tricky, and build confidence one answer at a time.</p>
+          <div class="eyebrow light">${text("home.heroKicker")}</div>
+          <h1>${text("home.heroTitle")}</h1>
+          <p>${text("home.heroDescription")}</p>
           <button class="button button-light" id="start-quick">
-              ${currentDue.length ? `Review ${Math.min(currentDue.length, 10)} due question${currentDue.length === 1 ? "" : "s"}` : "Start a quick practice"}
+              ${currentDue.length ? text("home.reviewDue", { count: Math.min(currentDue.length, 10), plural: locale === "en" && currentDue.length !== 1 ? "s" : locale === "bg" && currentDue.length !== 1 ? "а" : "" }) : text("home.quickPractice")}
             <span aria-hidden="true">→</span>
           </button>
         </div>
@@ -185,21 +218,21 @@ function renderHome(): string {
           <span class="float-chip chip-three">CSS</span>
         </div>
       </section>
-      <section class="stats-grid" aria-label="Study progress">
-        <article class="stat-card"><span class="stat-icon purple">✳</span><span class="stat-label">IN THE LIBRARY</span><strong>${questions.length}</strong><span class="stat-foot">questions across ${topics.length} topics</span></article>
-        <article class="stat-card"><span class="stat-icon orange">↻</span><span class="stat-label">READY TO REVIEW</span><strong>${currentDue.length}</strong><span class="stat-foot">due for another look</span></article>
-        <article class="stat-card"><span class="stat-icon green">◷</span><span class="stat-label">PRACTICED</span><strong>${seen}</strong><span class="stat-foot">questions reviewed so far</span></article>
+      <section class="stats-grid" aria-label="${text("accessibility.studyProgress")}">
+        <article class="stat-card"><span class="stat-icon purple">✳</span><span class="stat-label">${text("home.library")}</span><strong>${questions.length}</strong><span class="stat-foot">${text("home.questionsTopics", { questions: questions.length, topics: topics.length })}</span></article>
+        <article class="stat-card"><span class="stat-icon orange">↻</span><span class="stat-label">${text("home.readyReview")}</span><strong>${currentDue.length}</strong><span class="stat-foot">${text("home.dueAgain")}</span></article>
+        <article class="stat-card"><span class="stat-icon green">◷</span><span class="stat-label">${text("home.practiced")}</span><strong>${seen}</strong><span class="stat-foot">${text("home.reviewedSoFar")}</span></article>
       </section>
       <div class="section-heading">
-        <div><div class="eyebrow">LEARN FIRST, PRACTICE WHEN READY</div><h2>Explore the library</h2></div>
-        <label class="search-box"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search questions</span><input id="question-search" type="search" placeholder="Search questions" value="${escapeHtml(searchTerm)}" /></label>
+        <div><div class="eyebrow">${text("home.learnKicker")}</div><h2>${text("home.explore")}</h2></div>
+        <label class="search-box"><span aria-hidden="true">⌕</span><span class="visually-hidden">${text("accessibility.searchQuestions")}</span><input id="question-search" type="search" placeholder="${text("home.search")}" value="${escapeHtml(searchTerm)}" /></label>
       </div>
       ${searchTerm.trim()
-        ? `<section class="search-results" aria-label="Search results">
-            <div class="results-label">${searchMatches.length ? `Matching questions${filteredQuestions(questions).length > 12 ? " · showing first 12" : ""}` : "No matching questions"}</div>
+        ? `<section class="search-results" aria-label="${text("home.search")}">
+            <div class="results-label">${searchMatches.length ? filteredQuestions(questions).length > 12 ? text("home.resultsLimited") : text("home.results") : text("home.noResults")}</div>
             ${searchMatches.map((question) => `
               <button class="search-result" data-question="${escapeHtml(question.id)}">
-                <span><strong>${escapeHtml(question.prompt)}</strong><small>${escapeHtml(question.topicLabel)} · ${importanceLabels[question.importance]}</small></span><span aria-hidden="true">→</span>
+                <span><strong>${escapeHtml(questionCopy(question).text.prompt)}</strong><small>${escapeHtml(topicLabel(question.topic, question.topicLabel))} · ${localizedImportance(locale, question.importance)}</small></span><span aria-hidden="true">→</span>
               </button>
             `).join("")}
           </section>`
@@ -207,16 +240,17 @@ function renderHome(): string {
             ${tracks.map((track) => {
               const trackTopics = topics.filter((topic) => topic.track === track.id);
               if (!trackTopics.length) return "";
-              return `<section class="curriculum-track" aria-label="${escapeHtml(track.label)}">
-                <div class="track-heading"><div><h3>${escapeHtml(track.label)}</h3><p>${escapeHtml(track.description)}</p></div></div>
+              const localized = localizedTrack(locale, track.id, track.label, track.description);
+              return `<section class="curriculum-track" aria-label="${escapeHtml(localized.label)}">
+                <div class="track-heading"><div><h3>${escapeHtml(localized.label)}</h3><p>${escapeHtml(localized.description)}</p></div></div>
                 <div class="topic-grid">
                   ${trackTopics.map((topic, index) => `
                     <article class="topic-card">
                       <span class="topic-card-icon tone-${index % 5}" aria-hidden="true">${["◈", "⌘", "▱", "✳", "◇"][index % 5]}</span>
-                      <span class="topic-card-copy"><strong>${escapeHtml(topic.label)}</strong><small>${topic.count} questions · ${priorityBadge(topic.importance)}</small></span>
+                      <span class="topic-card-copy"><strong>${escapeHtml(topicLabel(topic.slug, topic.label))}</strong><small>${text("home.questionCount", { count: topic.count })} · ${priorityBadge(topic.importance)}</small></span>
                       <span class="topic-actions">
-                        <button class="topic-action learn-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="learn">Learn</button>
-                        <button class="topic-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="topic">Quiz</button>
+                        <button class="topic-action learn-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="learn">${text("home.learn")}</button>
+                        <button class="topic-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="topic">${text("home.quiz")}</button>
                       </span>
                     </article>
                   `).join("")}
@@ -233,58 +267,68 @@ function renderSession(): string {
   if (!session) return renderHome();
   const current = session.questions[session.index];
   if (!current) return renderHome();
+  const { text: currentText, fallback } = questionCopy(current);
   const modeLabel = session.mode === "topic"
-    ? current.topicLabel
+    ? topicLabel(current.topic, current.topicLabel)
     : session.mode === "learn"
-      ? `Learn · ${current.topicLabel}`
+      ? `${text("session.learn")} · ${topicLabel(current.topic, current.topicLabel)}`
     : session.mode === "weak"
-      ? "Weak areas"
+      ? text("session.weakAreas")
       : session.mode === "due"
-        ? "Quick review"
-        : "Practice";
+        ? text("session.quickReview")
+        : text("session.practice");
 
   return `
     <main class="main-content study-main">
       <header class="topbar study-topbar">
-        <button class="text-button back-button" id="end-session">← <span>Back to library</span></button>
+        <div class="session-header-actions">
+          <button class="text-button back-button" id="end-session">${text("session.back")}</button>
+          <label class="language-switch"><span class="visually-hidden">${text("accessibility.language")}</span>
+            <select id="language-select" aria-label="${text("accessibility.language")}">
+              <option value="en" ${locale === "en" ? "selected" : ""}>${text("accessibility.languageEnglish")}</option>
+              <option value="bg" ${locale === "bg" ? "selected" : ""}>${text("accessibility.languageBulgarian")}</option>
+            </select>
+          </label>
+        </div>
         <div class="session-meta">${session.index + 1} <span>/</span> ${session.questions.length}</div>
       </header>
       ${progressWarning ? `<div class="notice" role="status">${escapeHtml(progressWarning)}</div>` : ""}
-      <div class="progress-track" role="progressbar" aria-label="Session progress" aria-valuemin="0" aria-valuemax="${session.questions.length}" aria-valuenow="${session.index}">
+      <div class="progress-track" role="progressbar" aria-label="${text("accessibility.sessionProgress")}" aria-valuemin="0" aria-valuemax="${session.questions.length}" aria-valuenow="${session.index}">
         <span style="width:${(session.index / session.questions.length) * 100}%"></span>
       </div>
       <section class="question-area">
-        <div class="eyebrow">${escapeHtml(modeLabel.toUpperCase())} <span class="dot-separator">·</span> QUESTION ${session.index + 1}</div>
+        <div class="eyebrow">${escapeHtml(modeLabel.toUpperCase())} <span class="dot-separator">·</span> ${text("session.question", { number: session.index + 1 })}</div>
+        ${fallback ? `<div class="notice translation-notice" role="status">${text("translation.fallback")}</div>` : ""}
         <article class="question-card">
-          <div class="question-topline"><span class="topic-pill">${escapeHtml(current.topicLabel)} ${priorityBadge(current.importance)}</span><span class="question-number">${session.index + 1} / ${session.questions.length}</span></div>
-          <h1>${escapeHtml(current.prompt)}</h1>
+          <div class="question-topline"><span class="topic-pill">${escapeHtml(topicLabel(current.topic, current.topicLabel))} ${priorityBadge(current.importance)}</span><span class="question-number">${session.index + 1} / ${session.questions.length}</span></div>
+          <h1>${escapeHtml(currentText.prompt)}</h1>
           ${session.revealed
-            ? `<div class="answer-wrap"><div class="answer-label"><span class="answer-spark">✳</span> ${session.mode === "learn" ? "Study notes" : "Answer notes"}</div><div class="answer-content">${renderAnswer(current.answer)}</div>
-              ${current.sources.length ? `<div class="source-list"><strong>Sources</strong>${current.sources.map((source) => /^https?:\/\/[^\s]+$/i.test(source)
+            ? `<div class="answer-wrap"><div class="answer-label"><span class="answer-spark">✳</span> ${session.mode === "learn" ? text("session.studyNotes") : text("session.answerNotes")}</div><div class="answer-content">${renderAnswer(currentText.answer)}</div>
+              ${current.sources.length ? `<div class="source-list"><strong>${text("session.sources")}</strong>${current.sources.map((source) => /^https?:\/\/[^\s]+$/i.test(source)
                 ? `<a href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source)}</a>`
                 : `<span>${escapeHtml(source)}</span>`
               ).join("")}</div>` : ""}
               </div>
               ${session.mode === "learn"
                 ? `<div class="learn-controls">
-                    <button class="button button-secondary" id="previous-question" ${session.index === 0 ? "disabled" : ""}>← Previous</button>
-                    <span class="learn-position">Question ${session.index + 1} of ${session.questions.length}</span>
-                    <button class="button button-primary" id="next-question">${session.index === session.questions.length - 1 ? "Finish topic" : "Next question"} <span aria-hidden="true">→</span></button>
+                    <button class="button button-secondary" id="previous-question" ${session.index === 0 ? "disabled" : ""}>${text("session.previous")}</button>
+                    <span class="learn-position">${text("session.position", { current: session.index + 1, total: session.questions.length })}</span>
+                    <button class="button button-primary" id="next-question">${session.index === session.questions.length - 1 ? text("session.finishTopic") : text("session.next")} <span aria-hidden="true">→</span></button>
                   </div>`
-                : `<div class="rating-prompt" tabindex="-1">How did that feel?</div>
+                : `<div class="rating-prompt" tabindex="-1">${text("session.howFeel")}</div>
               <div class="rating-grid">
-                <button class="rating-button rating-again" data-rating="again"><strong>Again</strong><span>Need to revisit</span></button>
-                <button class="rating-button rating-hard" data-rating="hard"><strong>Hard</strong><span>Getting there</span></button>
-                <button class="rating-button rating-know" data-rating="know"><strong>Know it</strong><span>Feels familiar</span></button>
+                <button class="rating-button rating-again" data-rating="again"><strong>${text("session.again")}</strong><span>${text("session.againHint")}</span></button>
+                <button class="rating-button rating-hard" data-rating="hard"><strong>${text("session.hard")}</strong><span>${text("session.hardHint")}</span></button>
+                <button class="rating-button rating-know" data-rating="know"><strong>${text("session.know")}</strong><span>${text("session.knowHint")}</span></button>
               </div>`}`
-            : `<div class="think-prompt"><span aria-hidden="true">✎</span><span>Take a moment to form your own answer before you reveal it.</span></div>
-              <button class="button button-primary reveal-button" id="reveal-answer">Reveal answer <span aria-hidden="true">→</span></button>`
+            : `<div class="think-prompt"><span aria-hidden="true">✎</span><span>${text("session.thinkFirst")}</span></div>
+              <button class="button button-primary reveal-button" id="reveal-answer">${text("session.reveal")} <span aria-hidden="true">→</span></button>`
           }
         </article>
         <div class="session-bottom">
           ${session.mode === "learn"
-            ? `<span>Read through the explanation, then continue when you're ready.</span>`
-            : `<span>Be honest with yourself — this makes review more useful.</span><button class="text-button" id="skip-question">Skip for now</button>`}
+            ? `<span>${text("session.readContinue")}</span>`
+            : `<span>${text("session.honest")}</span><button class="text-button" id="skip-question">${text("session.skip")}</button>`}
         </div>
       </section>
     </main>
@@ -301,8 +345,24 @@ function render(): void {
       <span class="visually-hidden" aria-live="polite">${dueCount} questions due, ${weakCount} weak questions.</span>
     </div>
   `;
+  document.documentElement.lang = locale;
+  document.title = text("app.name");
 
   root.querySelector("#brand-home")?.addEventListener("click", finishSession);
+  root.querySelector<HTMLSelectElement>("#language-select")?.addEventListener("change", (event) => {
+    const selected = (event.currentTarget as HTMLSelectElement).value;
+    if (selected !== "en" && selected !== "bg") return;
+    try {
+      saveLocale(selected);
+      locale = selected;
+      render();
+    } catch (error) {
+      progressWarning = error instanceof Error
+        ? error.message
+        : text("progress.saveError");
+      render();
+    }
+  });
   root.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((button) => {
     button.addEventListener("click", () => {
       const mode = button.dataset.mode;
@@ -331,13 +391,13 @@ function render(): void {
     startSession(sets.due.length ? "due" : sets.weak.length ? "weak" : "all");
   });
   root.querySelector("#reset-progress")?.addEventListener("click", () => {
-    if (!window.confirm("Reset all review progress saved on this device?")) return;
+    if (!window.confirm(text("progress.resetConfirm"))) return;
     try {
       clearProgress();
       progress = {};
       progressWarning = "";
     } catch (error) {
-      progressWarning = error instanceof Error ? error.message : "Could not reset progress.";
+      progressWarning = error instanceof Error ? error.message : text("progress.resetError");
     }
     render();
   });

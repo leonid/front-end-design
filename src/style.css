@@ -38,6 +38,10 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .sidebar-note { margin-top: auto; padding: 16px 8px 0; color: #a0a2aa; font-size: 10px; border-top: 1px solid var(--line); }
 .main-content { max-width: 1330px; min-height: 100vh; margin-left: 260px; padding: 28px 5.2vw 70px; }
 .topbar { display: flex; align-items: center; justify-content: space-between; min-height: 29px; margin-bottom: 23px; }
+.topbar-actions, .session-header-actions { display: flex; align-items: center; gap: 17px; }
+.language-switch { display: inline-flex; align-items: center; gap: 7px; color: #626570; font-size: 12px; }
+.language-switch select { min-height: 34px; padding: 0 9px; border: 1px solid #e5e3ed; border-radius: 7px; background: #fff; color: #383b46; font: inherit; }
+.session-header-actions .language-switch { font-size: 13px; }
 .text-button { padding: 7px 0; border: 0; background: transparent; color: #777b86; font-size: 11px; }
 .text-button:hover { color: var(--purple); }
 .hero { position: relative; display: flex; min-height: 272px; align-items: center; overflow: hidden; padding: 35px 49px; border-radius: 19px; background: #6043cf; color: #fff; }
@@ -96,6 +100,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .search-result small { color: #999ba4; font-size: 9px; }
 .search-result > span:last-child { color: #8b77db; }
 .notice { margin: 0 0 15px; padding: 11px 13px; border: 1px solid #f1c7a5; border-radius: 8px; background: #fff8f1; color: #80501f; font-size: 12px; }
+.translation-notice { margin: 0 0 14px; }
 
 .study-main { padding-top: 27px; }
 .study-topbar { margin-bottom: 13px; }
@@ -157,6 +162,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
   .sidebar > .topic-item { display: none; }
   .main-content { min-height: calc(100vh - 55px); margin-left: 0; padding: 21px 17px 44px; }
   .topbar { margin-bottom: 15px; }.topbar > .eyebrow { max-width: 58%; font-size: 8px; }
+  .topbar-actions { gap: 9px; }.language-switch { gap: 4px; font-size: 10px; }.language-switch select { min-height: 31px; padding: 0 5px; font-size: 11px; }
+  .session-header-actions { gap: 9px; }
   .hero { min-height: 251px; padding: 27px 24px; }.hero h1 { font-size: 34px; }.hero p { max-width: 300px; font-size: 11px; }
   .hero-art { right: -88px; opacity: .25; }
   .stats-grid { gap: 7px; margin: 12px 0 32px; }.stat-card { min-height: 102px; padding: 13px 10px; }

@@ -38,6 +38,14 @@ Topics are grouped and ordered in `src/catalog.ts` rather than alphabetically:
 
 Importance is currently assigned at the topic level: **Core** is the recommended starting point, **Important** is the next pass, and **Specialist** covers more role- or company-dependent areas. Existing questions inherit their topic's importance; individual question files can override it with `importance: essential`, `importance: important`, or `importance: specialist`. Topics and questions follow the order in the catalog and source files, respectively.
 
+## Languages and translations
+
+Use the language selector to switch between English and Bulgarian. Review progress is keyed by the English question ID, so switching languages keeps the same learning history. The original English files remain canonical.
+
+For a topic stored in a numbered `questions.md`, add a Bulgarian mirror at `questions/translations/bg/<topic>/questions.md`. Keep its question numbers aligned with the English file; each translated entry overrides that question while a missing translation falls back to English. Keep code, API identifiers, and links intact when translating prose.
+
+For individual-question Markdown files, place a matching file at `questions/translations/bg/<topic>/<filename>.md`; its front matter `id` must match the original question's stable `id`. The prompt and answer use the same `#` and `## Answer` format. Translation files do not create separate questions or progress records.
+
 ## Editing the question bank
 
 The existing question bank is grouped by topic in `questions/<topic>/questions.md`. Keep each question heading in this form so the app can find it:
