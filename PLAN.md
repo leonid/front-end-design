@@ -9,7 +9,8 @@ Turn this repository's frontend interview question bank into a fast, simple stud
 - 28 topic folders hold approximately 385 questions in Markdown, including dedicated JavaScript, TypeScript, and object-oriented programming topics.
 - Answers include prose, lists, tables, and code samples, but their depth and accuracy vary.
 - `docs/references.md` contains general resource links rather than sources linked to individual answers.
-- The project currently has no app, build tooling, or Pages deployment.
+- The static study app supports English and Bulgarian; Bulgarian translations mirror the English question order and are loaded on demand.
+- Individual answers still need editorial and attribution review, even where Bulgarian translations are now present.
 
 ## Product experience
 
@@ -58,6 +59,7 @@ Turn this repository's frontend interview question bank into a fast, simple stud
 - Self-ratings affect future review order and survive reloads.
 - Progress can be reset, and the app remains useful with a new or empty progress store.
 - Markdown answers, including code and tables, render safely and readably.
+- English and Bulgarian can be switched without changing review history; untranslated items show a clear English fallback.
 - The site works by keyboard, adapts to mobile widths, and can be published at the GitHub Pages project URL.
 
 ## Out of scope for the first release

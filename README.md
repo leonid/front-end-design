@@ -42,6 +42,8 @@ Importance is currently assigned at the topic level: **Core** is the recommended
 
 Use the language selector to switch between English and Bulgarian. Review progress is keyed by the English question ID, so switching languages keeps the same learning history. The original English files remain canonical.
 
+The current Bulgarian set mirrors all 385 English questions. Bulgarian content is downloaded only when selected; untranslated entries in future changes continue to fall back to English. Have a fluent Bulgarian technical reviewer check terminology and phrasing before treating the translations as publication-ready.
+
 For a topic stored in a numbered `questions.md`, add a Bulgarian mirror at `questions/translations/bg/<topic>/questions.md`. Keep its question numbers aligned with the English file; each translated entry overrides that question while a missing translation falls back to English. Keep code, API identifiers, and links intact when translating prose.
 
 For individual-question Markdown files, place a matching file at `questions/translations/bg/<topic>/<filename>.md`; its front matter `id` must match the original question's stable `id`. The prompt and answer use the same `#` and `## Answer` format. Translation files do not create separate questions or progress records.
@@ -56,7 +58,7 @@ The existing question bank is grouped by topic in `questions/<topic>/questions.m
 Write the answer here in Markdown. Code blocks, tables, and lists are supported.
 ```
 
-Continue numbering within each file and put a blank line between the question heading and its answer. Add a new topic by creating a folder with a `questions.md` file. Question progress IDs are derived from the topic and question text; changing a question's wording starts its progress over, while rearranging questions does not.
+Continue numbering within each file and put a blank line between the question heading and its answer. Add a new topic by creating a folder with a `questions.md` file. Question progress IDs are derived from the topic and English question text; changing a question's wording starts its progress over, while rearranging questions does not. When changing the order or numbering, make the same change in the Bulgarian mirror because translations align by question number.
 
 Dedicated language topic files are available in `questions/javascript-language-fundamentals/` and `questions/typescript-fundamentals/`. Add new JavaScript or TypeScript fundamentals there instead of mixing them into the older combined React-oriented language topic.
 

@@ -26,10 +26,9 @@ const sourceFiles = import.meta.glob("../questions/*/*.md", {
   import: "default",
 }) as Record<string, string>;
 const bulgarianFiles = import.meta.glob("../questions/translations/bg/*/*.md", {
-  eager: true,
   query: "?raw",
   import: "default",
-}) as Record<string, string>;
+}) as Record<string, () => Promise<string>>;
 
 function isImportance(value: string): value is Importance {
   return value === "essential" || value === "important" || value === "specialist";
@@ -126,48 +125,6 @@ const loadedQuestions = Object.entries(sourceFiles).flatMap(([path, markdown]) =
     : [parseQuestionFile(topic, path, markdown)];
 });
 
-const questionsByTopic = new Map<string, Question[]>();
-for (const question of loadedQuestions) {
-  const group = questionsByTopic.get(question.topic) ?? [];
-  group.push(question);
-  questionsByTopic.set(question.topic, group);
-}
-for (const [path, markdown] of Object.entries(bulgarianFiles)) {
-  const topic = path.split("/").at(-2);
-  if (!topic) continue;
-  const originals = questionsByTopic.get(topic);
-  if (!originals) throw new Error(`Bulgarian translation "${path}" has no matching English topic.`);
-  if (!path.endsWith("/questions.md")) {
-    const frontMatter = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
-    const id = frontMatter?.[1].match(/^id:\s*([a-z0-9-]+)\s*$/m)?.[1];
-    const body = frontMatter ? markdown.slice(frontMatter[0].length) : markdown;
-    const prompt = body.match(/^#\s+(.+?)\s*$/m)?.[1]?.trim();
-    const answerHeading = /^## Answer\s*$/m.exec(body);
-    const answer = answerHeading ? body.slice(answerHeading.index + answerHeading[0].length).trim() : "";
-    const original = originals.find((question) => question.id === `${topic}/${id}`);
-    if (!id || !original || !prompt || !answer || original.translations.bg) {
-      throw new Error(`Invalid individual Bulgarian translation "${path}". Match its front matter id to an English question ID.`);
-    }
-    original.translations.bg = { prompt, answer };
-    continue;
-  }
-  const headings = [...markdown.matchAll(/^###\s+(\d+)[.)]\s+(.+?)\s*$/gm)];
-  const translatedNumbers = new Set<number>();
-  for (const [index, heading] of headings.entries()) {
-    const questionNumber = Number(heading[1]);
-    const original = originals[questionNumber - 1];
-    const start = (heading.index ?? 0) + heading[0].length;
-    const end = headings[index + 1]?.index ?? markdown.length;
-    const answer = markdown.slice(start, end).trim();
-    const prompt = heading[2]?.trim();
-    if (!original || !prompt || !answer || translatedNumbers.has(questionNumber)) {
-      throw new Error(`Invalid question ${questionNumber} in Bulgarian translation "${path}".`);
-    }
-    translatedNumbers.add(questionNumber);
-    original.translations.bg = { prompt, answer };
-  }
-}
-
 const ids = new Set<string>();
 for (const question of loadedQuestions) {
   if (ids.has(question.id)) throw new Error(`Duplicate question ID "${question.id}".`);
@@ -175,6 +132,65 @@ for (const question of loadedQuestions) {
 }
 
 export const questions = loadedQuestions;
+
+let bulgarianLoaded = false;
+
+export async function loadQuestionTranslations(locale: Locale): Promise<void> {
+  if (locale !== "bg" || bulgarianLoaded) return;
+  const loadedFiles = await Promise.all(Object.entries(bulgarianFiles).map(async ([path, load]) =>
+    [path, await load()] as const));
+
+  const pendingTranslations = new Map<Question, QuestionText>();
+  const questionsByTopic = new Map<string, Question[]>();
+  for (const question of loadedQuestions) {
+    const group = questionsByTopic.get(question.topic) ?? [];
+    group.push(question);
+    questionsByTopic.set(question.topic, group);
+  }
+  for (const [path, markdown] of loadedFiles) {
+    const topic = path.split("/").at(-2);
+    if (!topic) continue;
+    const originals = questionsByTopic.get(topic);
+    if (!originals) throw new Error(`Bulgarian translation "${path}" has no matching English topic.`);
+    if (!path.endsWith("/questions.md")) {
+      const frontMatter = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
+      const id = frontMatter?.[1].match(/^id:\s*([a-z0-9-]+)\s*$/m)?.[1];
+      const body = frontMatter ? markdown.slice(frontMatter[0].length) : markdown;
+      const prompt = body.match(/^#\s+(.+?)\s*$/m)?.[1]?.trim();
+      const answerHeading = /^## Answer\s*$/m.exec(body);
+      const answer = answerHeading ? body.slice(answerHeading.index + answerHeading[0].length).trim() : "";
+      const original = originals.find((question) => question.id === `${topic}/${id}`);
+      if (!id || !original || !prompt || !answer || original.translations.bg || pendingTranslations.has(original)) {
+        throw new Error(`Invalid individual Bulgarian translation "${path}". Match its front matter id to an English question ID.`);
+      }
+      pendingTranslations.set(original, { prompt, answer });
+      continue;
+    }
+    const headings = [...markdown.matchAll(/^###\s+(\d+)[.)]\s+(.+?)\s*$/gm)];
+    const translatedNumbers = new Set<number>();
+    for (const [index, heading] of headings.entries()) {
+      const questionNumber = Number(heading[1]);
+      const original = originals[questionNumber - 1];
+      const start = (heading.index ?? 0) + heading[0].length;
+      const end = headings[index + 1]?.index ?? markdown.length;
+      const answer = markdown.slice(start, end).trim();
+      const prompt = heading[2]?.trim();
+      if (!original || !prompt || !answer || translatedNumbers.has(questionNumber)) {
+        throw new Error(`Invalid question ${questionNumber} in Bulgarian translation "${path}".`);
+      }
+      translatedNumbers.add(questionNumber);
+      if (pendingTranslations.has(original)) {
+        throw new Error(`Duplicate Bulgarian translation for question "${original.id}".`);
+      }
+      pendingTranslations.set(original, { prompt, answer });
+    }
+  }
+
+  for (const [question, translation] of pendingTranslations) {
+    question.translations.bg = translation;
+  }
+  bulgarianLoaded = true;
+}
 
 export function getQuestionText(question: Question, locale: Locale): { text: QuestionText; fallback: boolean } {
   if (locale === "bg" && question.translations.bg) {

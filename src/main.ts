@@ -1,5 +1,4 @@
-import { questions, renderAnswer } from "./questions";
-import { getQuestionText } from "./questions";
+import { getQuestionText, loadQuestionTranslations, questions, renderAnswer } from "./questions";
 import { topicCatalog, tracks, type Importance } from "./catalog";
 import {
   getLocale,
@@ -89,7 +88,7 @@ function filteredQuestions(source: typeof questions): typeof questions {
   return term
     ? source.filter((question) => {
       const { text: content } = questionCopy(question);
-      return `${content.prompt} ${content.answer} ${question.topicLabel} ${question.tags.join(" ")}`.toLocaleLowerCase().includes(term);
+      return `${content.prompt} ${content.answer} ${topicLabel(question.topic, question.topicLabel)} ${question.tags.join(" ")}`.toLocaleLowerCase().includes(term);
     })
     : source;
 }
@@ -115,7 +114,17 @@ function startSession(mode: StudyMode, topic?: string): void {
     index: 0,
     revealed: mode === "learn",
   };
-  render();
+  if (locale === "bg") {
+    getRoot().innerHTML = `<main class="main-content"><p role="status">${text("app.loading")}</p></main>`;
+    void loadQuestionTranslations(locale)
+      .then(render)
+      .catch((error: unknown) => {
+        progressWarning = error instanceof Error ? error.message : text("progress.readError");
+        render();
+      });
+  } else {
+    render();
+  }
 }
 
 function finishSession(): void {
@@ -352,16 +361,17 @@ function render(): void {
   root.querySelector<HTMLSelectElement>("#language-select")?.addEventListener("change", (event) => {
     const selected = (event.currentTarget as HTMLSelectElement).value;
     if (selected !== "en" && selected !== "bg") return;
-    try {
+    void (async () => {
+      await loadQuestionTranslations(selected);
       saveLocale(selected);
       locale = selected;
       render();
-    } catch (error) {
+    })().catch((error: unknown) => {
       progressWarning = error instanceof Error
         ? error.message
         : text("progress.saveError");
       render();
-    }
+    });
   });
   root.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((button) => {
     button.addEventListener("click", () => {

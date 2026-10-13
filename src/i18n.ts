@@ -1,4 +1,4 @@
-import { importanceLabels, tracks, type Importance } from "./catalog";
+import { importanceLabels, type Importance, type TrackId } from "./catalog";
 
 export type Locale = "en" | "bg";
 
@@ -7,6 +7,7 @@ const LOCALE_KEY = "frontend-interview-locale:v1";
 const copy = {
   en: {
     "app.name": "Frontend Interview Practice",
+    "app.loading": "Loading questions…",
     "nav.review": "REVIEW",
     "nav.quickReview": "Quick review",
     "nav.weakAreas": "Weak areas",
@@ -91,6 +92,7 @@ const copy = {
   },
   bg: {
     "app.name": "Подготовка за интервю по Frontend",
+    "app.loading": "Зареждане на въпросите…",
     "nav.review": "ПОВТОРЕНИЕ",
     "nav.quickReview": "Бърз преговор",
     "nav.weakAreas": "Трудни теми",
@@ -226,11 +228,10 @@ export function localizedTopicLabel(locale: Locale, slug: string, fallback: stri
   return locale === "bg" ? topicLabelsBg[slug] ?? fallback : fallback;
 }
 
-export function localizedTrack(locale: Locale, id: string, fallback: string, description: string): { label: string; description: string } {
+export function localizedTrack(locale: Locale, id: TrackId, fallback: string, description: string): { label: string; description: string } {
   if (locale === "en") return { label: fallback, description };
-  const key = id as (typeof tracks)[number]["id"];
-  const translatedTrack = copy.bg[`track.${key}`];
-  const translatedDescription = copy.bg[`track.${key}Description`];
+  const translatedTrack = copy.bg[`track.${id}`];
+  const translatedDescription = copy.bg[`track.${id}Description`];
   return {
     label: translatedTrack ?? fallback,
     description: translatedDescription ?? description,
