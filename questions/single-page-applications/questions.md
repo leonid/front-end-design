@@ -41,30 +41,30 @@ These frameworks were built to solve UI complexity by enabling reactive, state-d
 
 <br />
 
-### 7. How do you assess whether an SPA is the right architectural choice for a given project versus an MPA?
+### 7. How do you assess whether an single-page application (SPA) is the right architectural choice for a given project versus an MPA?
 
-Use an SPA when:
+Use an single-page application (SPA) when:
 
 - You need high interactivity (dashboards, apps)
 - Performance post-initial-load matters
 - You're building a mobile/desktop-like experience
-  Avoid SPAs for content-heavy or SEO-critical websites unless SSR is in place.
+  Avoid SPAs for content-heavy or SEO-critical websites unless server-side rendering (SSR) is in place.
 
 <br />
 
-### 8. What challenges did early SPA implementations face, and how have modern tools addressed those issues?
+### 8. What challenges did early single-page application (SPA) implementations face, and how have modern tools addressed those issues?
 
 - Poor SEO (no server-rendered HTML)
 - Long initial load times
 - Browser history issues
 - Security (exposing APIs to client)
-  Modern tools like Next.js, SSR, hydration, and lazy loading solve most of these.
+  Modern tools like Next.js, server-side rendering (SSR), hydration, and lazy loading solve most of these.
 
 <br />
 
 ### 9. How do you educate a team on the purpose and benefits of SPAs when transitioning from an MPA codebase?
 
-- Explain SPA lifecycle and routing
+- Explain single-page application (SPA) lifecycle and routing
 - Introduce concepts like hydration, lazy loading
 - Emphasize client-side state and component-driven design
 - Walk through real-world examples (e.g., React Router)
@@ -75,7 +75,7 @@ Use an SPA when:
 
 SPAs are evolving into **hybrid apps** with:
 
-- SSR/SSG (e.g., Next.js)
+- server-side rendering (SSR)/Static Site Generation (SSG) (e.g., Next.js)
 - Islands architecture
 - Partial hydration
   Future direction emphasizes performance, SEO, and developer experience.
@@ -84,13 +84,13 @@ SPAs are evolving into **hybrid apps** with:
 
 ### 11. How does routing work in a Single Page Application, and how does it differ from traditional server-side routing?
 
-- SPA routing is **client-side** via the History API (`pushState`)
-- MPA routing is **server-driven** via HTTP requests
-  SPA routers intercept link clicks and render views dynamically without reloading.
+- Single-page application (SPA) routing is **client-side** via the History API (`pushState`)
+- MPA routing is **server-driven** via Hypertext Transfer Protocol (HTTP) requests
+  single-page application (SPA) routers intercept link clicks and render views dynamically without reloading.
 
 <br />
 
-### 12. What’s your approach to implementing client-side routing in a React SPA using React Router?
+### 12. What’s your approach to implementing client-side routing in a React single-page application (SPA) using React Router?
 
 ```jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -105,7 +105,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 <br />
 
-### 13. How do you manage state in a React SPA when navigating between routes?
+### 13. How do you manage state in a React single-page application (SPA) when navigating between routes?
 
 Use:
 
@@ -115,7 +115,7 @@ Use:
 
 <br />
 
-### 14. What are the challenges of handling browser history and back/forward navigation in an SPA?
+### 14. What are the challenges of handling browser history and back/forward navigation in an single-page application (SPA)?
 
 - Managing `back/forward` without reloads
 - Restoring scroll positions
@@ -125,7 +125,7 @@ React Router handles much of this via `<BrowserRouter>` and `useNavigate`.
 
 <br />
 
-### 15. How do you optimize SPA routing performance to minimize delays during navigation?
+### 15. How do you optimize single-page application (SPA) routing performance to minimize delays during navigation?
 
 - **Code splitting** via `React.lazy` and `Suspense`
 - **Prefetching** data or chunks
@@ -133,14 +133,14 @@ React Router handles much of this via `<BrowserRouter>` and `useNavigate`.
 
 <br />
 
-### 16. What’s your strategy for handling 404s or invalid routes in a React SPA?
+### 16. What’s your strategy for handling 404s or invalid routes in a React single-page application (SPA)?
 
 `<Route path="*" element={<NotFound />} />`
 Handle invalid routes with fallback components and optionally redirect to safe pages.
 
 <br />
 
-### 17. How do you integrate server-side rendering (SSR) with SPA routing in a React app to improve SEO?
+### 17. How do you integrate server-side rendering (SSR) with single-page application (SPA) routing in a React app to improve SEO?
 
 Use frameworks like **Next.js** :
 
@@ -149,7 +149,7 @@ Use frameworks like **Next.js** :
 
 <br />
 
-### 18. What’s your approach to securing routes in a React SPA (e.g., protected routes requiring authentication)?
+### 18. What’s your approach to securing routes in a React single-page application (SPA) (e.g., protected routes requiring authentication)?
 
 Use a protected route pattern:
 
@@ -162,7 +162,7 @@ Integrate token checks, role-based access, and redirect unauthorized users.
 
 <br />
 
-### 19. How do you test SPA routing logic in a React application to ensure reliability across navigation scenarios?
+### 19. How do you test single-page application (SPA) routing logic in a React application to ensure reliability across navigation scenarios?
 
 Use:
 
@@ -182,7 +182,7 @@ render(
 
 <br />
 
-### 20. How do you debug routing issues in a React SPA when navigation fails or renders unexpected content?
+### 20. How do you debug routing issues in a React single-page application (SPA) when navigation fails or renders unexpected content?
 
 - Use **React DevTools** + browser DevTools (network, console)
 - Inspect `window.history` state

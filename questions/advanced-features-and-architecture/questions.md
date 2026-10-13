@@ -1,10 +1,10 @@
 ### 1. How would you implement server-side rendering (SSR) in a React application?
 
-**Approach** : Use a framework like **Next.js** , which abstracts the SSR setup.
+**Approach** : Use a framework like **Next.js** , which abstracts the server-side rendering (SSR) setup.
 
 **Concept** :
 
-- SSR renders React components to HTML on the server.
+- Server-side rendering (SSR) renders React components to HTML on the server.
 - This improves **initial load performance** , **SEO** , and **time-to-interactive** .
 
   **Next.js Example** :
@@ -23,7 +23,7 @@ export async function getServerSideProps() {
 }
 ```
 
-**Custom SSR** (using `ReactDOMServer`):
+**Custom server-side rendering (SSR)** (using `ReactDOMServer`):
 
 ```tsx
 const html = ReactDOMServer.renderToString(<App />);

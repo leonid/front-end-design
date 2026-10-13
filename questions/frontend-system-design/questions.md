@@ -3,7 +3,7 @@
 **Key strategies** :
 
 - **Server-Side Rendering (SSR)** or **Static Site Generation (SSG)** via Next.js for product/category pages to reduce TTFB.
-- **CDN caching** for static assets and SSR responses.
+- **CDN caching** for static assets and server-side rendering (SSR) responses.
 - Use **code-splitting** and **lazy loading** for product details, reviews, etc.
 - Offload heavy UI (e.g., search, filters) using **client-side rendering** with async APIs.
 
@@ -111,7 +111,7 @@ i18n.changeLanguage("fr"); // dynamically switches language
 
 ### 9. How do you design a frontend system to handle peak traffic spikes (e.g., Black Friday sales) without degrading performance?
 
-- SSR with full-page CDN caching.
+- Server-side rendering (SSR) with full-page CDN caching.
 - Minimize dynamic JS — use **islands architecture** or **partial hydration** .
 - Show graceful loading states, use fallback UI for rate-limited APIs.
 - Use feature flags to **disable non-critical features** during load spikes.

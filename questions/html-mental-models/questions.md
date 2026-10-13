@@ -108,7 +108,7 @@ I optimize by:
 
 - Reducing initial HTML payload (e.g., lazy load non-critical UI).
 - Prioritizing content order (above-the-fold).
-- Using SSR/Streaming for time-to-first-byte wins.
+- Using server-side rendering (SSR)/Streaming for time-to-first-byte wins.
 
 <br />
 
@@ -144,7 +144,7 @@ I build HTML to work **without JavaScript first** , then enhance with React.
 
 Example:
 
-- Render SSR HTML with links and buttons functional.
+- Render server-side rendering (SSR) HTML with links and buttons functional.
 - Hydrate on client for richer interaction (e.g., modals, search).
 
 Use:
@@ -161,16 +161,16 @@ Enhancement adds filters, animations, etc. after hydration.
 
 <br />
 
-### 9. How do you think about the role of HTML in a server-side rendered (SSR) React application?
+### 9. How do you think about the role of HTML in a server-side rendered (server-side rendering (SSR)) React application?
 
-HTML is the **initial render** delivered to the browser in SSR:
+HTML is the **initial render** delivered to the browser in server-side rendering (SSR):
 
 - It improves **Time to First Paint (TTFP)** and SEO.
 - React rehydrates the HTML into a live app.
 
 My model:
 
-- Keep the markup semantic and minimal for SSR.
+- Keep the markup semantic and minimal for server-side rendering (SSR).
 - Use `<head>` tags for meta, title, preload (via `react-helmet` or `@vitejs/plugin-react`).
 - Avoid non-deterministic rendering (e.g., `window`, `localStorage` on server).
 

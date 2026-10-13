@@ -7,7 +7,7 @@ I start by dividing the app by **domain boundaries** (e.g., auth, dashboard, che
 **Approaches:**
 
 - **Module Federation (Webpack 5)** for runtime integration.
-- **Single-SPA** for routing and orchestration.
+- **Single-page application (SPA)** for routing and orchestration.
 - **iframes** (rarely, for legacy isolation).
 
 **Example (Module Federation):**
@@ -79,7 +79,7 @@ Keep shared state minimal to preserve MFE independence.
 **Answer:**
 Two common strategies:
 
-- **Single-SPA** or host-level router delegates route ownership to MFEs:
+- **Single-page application (SPA)** or host-level router delegates route ownership to MFEs:
 
 ```
 
@@ -157,7 +157,7 @@ Add feature flags to selectively disable MFEs for quicker isolation.
 
 - Use **code splitting** within each MFE.
 - Leverage **tree shaking** and shared libraries to reduce bundle size.
-- Enable **HTTP/2 or preloading** for remote chunks.
+- Enable **Hypertext Transfer Protocol (HTTP)/2 or preloading** for remote chunks.
 - Lazy-load MFEs:
 
 ```

@@ -75,7 +75,7 @@ MPAs страдаха от latency (пълни зареждания), ненуж
 
 SPAs се развиват към **хибридни apps** с:
 
-- SSR/SSG (напр. Next.js)
+- SSR/Static Site Generation (SSG) (напр. Next.js)
 - Islands architecture
 - Partial hydration
   Бъдещата посока подчертава производителност, SEO и developer experience.

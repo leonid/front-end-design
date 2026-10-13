@@ -76,13 +76,13 @@
 | Strategy      | Pros                        | Cons                         |
 | ------------- | --------------------------- | ---------------------------- |
 | CSR           | Fast interactivity          | Poor SEO, slower first paint |
-| SSR (Next.js) | Good SEO, dynamic           | Higher server cost           |
-| SSG           | Fastest delivery, great SEO | Not ideal for dynamic data   |
+| Server-side rendering (SSR) (Next.js) | Good SEO, dynamic           | Higher server cost           |
+| Static Site Generation (SSG)           | Fastest delivery, great SEO | Not ideal for dynamic data   |
 
 **Rule of thumb** :
 
-- **SSR** for dynamic content needing SEO.
-- **SSG** for marketing pages.
+- **Server-side rendering (SSR)** for dynamic content needing SEO.
+- **Static Site Generation (SSG)** for marketing pages.
 - **CSR** for apps behind auth.
 
 <br />
@@ -326,7 +326,7 @@ Use tools like **Amplitude** , **PostHog** , **Sentry** , and **Google Lighthous
 
 **Secure** :
 
-- Use **HttpOnly, SameSite cookies** to avoid XSS/CSRF.
+- Use **HttpOnly, SameSite cookies** to avoid Cross-Site Scripting (XSS)/Cross-Site Request Forgery (CSRF).
 - Authenticate via **OAuth2/OIDC** flows (e.g., Auth0).
 - Validate tokens server-side (no trust on client).
 
@@ -340,7 +340,7 @@ Use tools like **Amplitude** , **PostHog** , **Sentry** , and **Google Lighthous
 
 ### 27. What’s the most subtle security vulnerability you’ve encountered in a frontend application, and how did you discover and fix it?
 
-**Issue** : A stored XSS vector in user profile bio field displayed via `dangerouslySetInnerHTML`.
+**Issue** : A stored Cross-Site Scripting (XSS) vector in user profile bio field displayed via `dangerouslySetInnerHTML`.
 
 **Fix** :
 
@@ -382,7 +382,7 @@ Use tools like **Amplitude** , **PostHog** , **Sentry** , and **Google Lighthous
 - **Frontend** enforces UX-level restrictions (e.g., disabling buttons, basic validation).
 - **Backend** is the ultimate gatekeeper: all inputs must be validated and authorized.
 - Never expose secrets or auth logic on the client.
-- Use **CSRF tokens** , **rate limiting** , and **input validation** on both sides.
+- Use **Cross-Site Request Forgery (CSRF) tokens** , **rate limiting** , and **input validation** on both sides.
 
 <br />
 

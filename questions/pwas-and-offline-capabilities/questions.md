@@ -4,7 +4,7 @@
 I start by ensuring the core PWA criteria are met:
 
 - **Responsive UI** : Built with mobile-first design using CSS frameworks or media queries.
-- **HTTPS** : Required for service workers and security.
+- **Hypertext Transfer Protocol Secure (HTTPS)** : Required for service workers and security.
 - **Web App Manifest** : Defines app metadata (name, icons, theme color).
 - **Service Worker** : Enables caching and offline support.
 
