@@ -26,6 +26,18 @@ Create a production build with `npm run build`; preview it locally with `npm run
 
 This is a self-study aid, not a scoring system; answer quality and confidence are for you to judge.
 
+## Learning path and importance
+
+Topics are grouped and ordered in `src/catalog.ts` rather than alphabetically:
+
+1. **Core foundations** — JavaScript, TypeScript, HTML, CSS, and accessibility.
+2. **Interface engineering** — React/Vue, OOP, state, SPAs, application architecture, and patterns.
+3. **Quality and delivery** — testing, security, performance, build tooling, CI/CD, and monitoring.
+4. **Architecture and scale** — system design, API collaboration, deep engineering, micro-frontends, PWAs, and emerging topics.
+5. **Senior practice** — scenarios, team practices, and leadership.
+
+Importance is currently assigned at the topic level: **Core** is the recommended starting point, **Important** is the next pass, and **Specialist** covers more role- or company-dependent areas. Existing questions inherit their topic's importance; individual question files can override it with `importance: essential`, `importance: important`, or `importance: specialist`. Topics and questions follow the order in the catalog and source files, respectively.
+
 ## Editing the question bank
 
 The existing question bank is grouped by topic in `questions/<topic>/questions.md`. Keep each question heading in this form so the app can find it:
@@ -48,6 +60,7 @@ id: stable-question-id
 tags: javascript, fundamentals
 difficulty: intermediate
 sources: https://developer.mozilla.org/
+importance: essential
 ---
 # Your interview question?
 

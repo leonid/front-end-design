@@ -1,4 +1,5 @@
 import { questions, renderAnswer } from "./questions";
+import { importanceLabels, topicCatalog, tracks, type Importance } from "./catalog";
 import {
   clearProgress,
   getReviewSets,
@@ -47,13 +48,19 @@ const escapeHtml = (value: string) =>
     "'": "&#39;",
   })[character] ?? character);
 
-const topics = [...new Set(questions.map((question) => question.topic))]
-  .map((slug) => ({
+const topics = Object.entries(topicCatalog)
+  .map(([slug, metadata]) => ({
     slug,
-    label: questions.find((question) => question.topic === slug)?.topicLabel ?? slug,
+    ...metadata,
     count: questions.filter((question) => question.topic === slug).length,
   }))
-  .sort((a, b) => a.label.localeCompare(b.label));
+  .filter((topic) => topic.count > 0)
+  .sort((a, b) => tracks.findIndex((track) => track.id === a.track)
+    - tracks.findIndex((track) => track.id === b.track) || a.order - b.order);
+
+function priorityBadge(importance: Importance): string {
+  return `<span class="importance-badge importance-${importance}">${importanceLabels[importance]}</span>`;
+}
 
 function filteredQuestions(source: typeof questions): typeof questions {
   const term = searchTerm.trim().toLowerCase();
@@ -129,16 +136,21 @@ function renderSidebar(): string {
       <button class="nav-item ${session?.mode === "weak" ? "active" : ""}" data-mode="weak" ${reviewSets.weak.length ? "" : "disabled"}>
         <span>Weak areas</span><span class="nav-count">${reviewSets.weak.length}</span>
       </button>
-      <div class="nav-label topics-label">TOPICS</div>
+      <div class="nav-label topics-label">LEARNING PATH</div>
       <button class="nav-item topic-item" data-mode="all">
         <span>All questions</span><span class="nav-count">${questions.length}</span>
       </button>
       <div class="topic-list">
-        ${topics.map((topic) => `
-          <button class="nav-item topic-item" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="learn">
-            <span>${escapeHtml(topic.label)}</span><span class="nav-count">${topic.count}</span>
-          </button>
-        `).join("")}
+        ${tracks.map((track) => {
+          const trackTopics = topics.filter((topic) => topic.track === track.id);
+          if (!trackTopics.length) return "";
+          return `<div class="nav-track-label">${escapeHtml(track.label)}</div>
+            ${trackTopics.map((topic) => `
+              <button class="nav-item topic-item" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="learn">
+                <span>${escapeHtml(topic.label)}</span><span class="nav-count">${topic.count}</span>
+              </button>
+            `).join("")}`;
+        }).join("")}
       </div>
       <div class="sidebar-note">Your progress stays on this device.</div>
     </aside>
@@ -187,22 +199,31 @@ function renderHome(): string {
             <div class="results-label">${searchMatches.length ? `Matching questions${filteredQuestions(questions).length > 12 ? " · showing first 12" : ""}` : "No matching questions"}</div>
             ${searchMatches.map((question) => `
               <button class="search-result" data-question="${escapeHtml(question.id)}">
-                <span><strong>${escapeHtml(question.prompt)}</strong><small>${escapeHtml(question.topicLabel)}</small></span><span aria-hidden="true">→</span>
+                <span><strong>${escapeHtml(question.prompt)}</strong><small>${escapeHtml(question.topicLabel)} · ${importanceLabels[question.importance]}</small></span><span aria-hidden="true">→</span>
               </button>
             `).join("")}
           </section>`
-        : `<section class="topic-grid" aria-label="Question topics">
-            ${topics.map((topic, index) => `
-              <article class="topic-card">
-                <span class="topic-card-icon tone-${index % 5}" aria-hidden="true">${["◈", "⌘", "▱", "✳", "◇"][index % 5]}</span>
-                <span class="topic-card-copy"><strong>${escapeHtml(topic.label)}</strong><small>${topic.count} questions</small></span>
-                <span class="topic-actions">
-                  <button class="topic-action learn-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="learn">Learn</button>
-                  <button class="topic-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="topic">Quiz</button>
-                </span>
-              </article>
-            `).join("")}
-          </section>`
+        : `<div class="curriculum">
+            ${tracks.map((track) => {
+              const trackTopics = topics.filter((topic) => topic.track === track.id);
+              if (!trackTopics.length) return "";
+              return `<section class="curriculum-track" aria-label="${escapeHtml(track.label)}">
+                <div class="track-heading"><div><h3>${escapeHtml(track.label)}</h3><p>${escapeHtml(track.description)}</p></div></div>
+                <div class="topic-grid">
+                  ${trackTopics.map((topic, index) => `
+                    <article class="topic-card">
+                      <span class="topic-card-icon tone-${index % 5}" aria-hidden="true">${["◈", "⌘", "▱", "✳", "◇"][index % 5]}</span>
+                      <span class="topic-card-copy"><strong>${escapeHtml(topic.label)}</strong><small>${topic.count} questions · ${priorityBadge(topic.importance)}</small></span>
+                      <span class="topic-actions">
+                        <button class="topic-action learn-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="learn">Learn</button>
+                        <button class="topic-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="topic">Quiz</button>
+                      </span>
+                    </article>
+                  `).join("")}
+                </div>
+              </section>`;
+            }).join("")}
+          </div>`
       }
     </main>
   `;
@@ -235,7 +256,7 @@ function renderSession(): string {
       <section class="question-area">
         <div class="eyebrow">${escapeHtml(modeLabel.toUpperCase())} <span class="dot-separator">·</span> QUESTION ${session.index + 1}</div>
         <article class="question-card">
-          <div class="question-topline"><span class="topic-pill">${escapeHtml(current.topicLabel)}</span><span class="question-number">${session.index + 1} / ${session.questions.length}</span></div>
+          <div class="question-topline"><span class="topic-pill">${escapeHtml(current.topicLabel)} ${priorityBadge(current.importance)}</span><span class="question-number">${session.index + 1} / ${session.questions.length}</span></div>
           <h1>${escapeHtml(current.prompt)}</h1>
           ${session.revealed
             ? `<div class="answer-wrap"><div class="answer-label"><span class="answer-spark">✳</span> ${session.mode === "learn" ? "Study notes" : "Answer notes"}</div><div class="answer-content">${renderAnswer(current.answer)}</div>

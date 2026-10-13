@@ -1,5 +1,6 @@
 import { marked } from "marked";
 import DOMPurify from "dompurify";
+import { topicCatalog, type Importance, type TopicMetadata } from "./catalog";
 
 export interface Question {
   id: string;
@@ -9,6 +10,7 @@ export interface Question {
   answer: string;
   tags: string[];
   difficulty?: string;
+  importance: Importance;
   sources: string[];
 }
 
@@ -18,32 +20,15 @@ const sourceFiles = import.meta.glob("../questions/**/*.md", {
   import: "default",
 }) as Record<string, string>;
 
-function toTopicLabel(slug: string): string {
-  const labels: Record<string, string> = {
-    css: "CSS",
-    html: "HTML",
-    javascript: "JavaScript",
-    typescript: "TypeScript",
-    pwas: "PWAs",
-    ci: "CI",
-    cd: "CD",
-    api: "API",
-    react: "React",
-    vue: "Vue",
-  };
+function isImportance(value: string): value is Importance {
+  return value === "essential" || value === "important" || value === "specialist";
+}
 
-  const customLabels: Record<string, string> = {
-    "ci-cd-and-monitoring-tools": "CI/CD and Monitoring Tools",
-    "core-react-vue-concepts": "Core React/Vue Concepts",
-    "frontend-backend-collaboration-and-api-design": "Frontend-Backend Collaboration and API Design",
-    "typescript-and-javascript": "TypeScript and JavaScript",
-  };
-  if (customLabels[slug]) return customLabels[slug];
-
-  return slug
-    .split("-")
-    .map((part) => labels[part] ?? part[0]?.toUpperCase() + part.slice(1))
-    .join(" ");
+function getTopicMetadata(slug: string) {
+  const metadataBySlug: Readonly<Record<string, TopicMetadata>> = topicCatalog;
+  const metadata = metadataBySlug[slug];
+  if (!metadata) throw new Error(`Topic "${slug}" is missing from src/catalog.ts.`);
+  return metadata;
 }
 
 function parseQuestions(topic: string, markdown: string): Question[] {
@@ -66,13 +51,15 @@ function parseQuestions(topic: string, markdown: string): Question[] {
     const occurrence = (promptSlugs.get(baseSlug) ?? 0) + 1;
     promptSlugs.set(baseSlug, occurrence);
 
+    const metadata = getTopicMetadata(topic);
     return [{
       id: `${topic}/${baseSlug}${occurrence > 1 ? `-${occurrence}` : ""}`,
       topic,
-      topicLabel: toTopicLabel(topic),
+      topicLabel: metadata.label,
       prompt,
       answer,
       tags: [],
+      importance: metadata.importance,
       sources: [],
     }];
   });
@@ -95,14 +82,25 @@ function parseQuestionFile(topic: string, path: string, markdown: string): Quest
   const listField = (name: string) =>
     field(name).replace(/^\[|\]$/g, "").split(",").map((value) => value.trim()).filter(Boolean);
 
+  const metadata = getTopicMetadata(topic);
+  const requestedImportance = field("importance");
+  let importance: Importance = metadata.importance;
+  if (requestedImportance) {
+    if (!isImportance(requestedImportance)) {
+      throw new Error(`Invalid importance "${requestedImportance}" in question file "${path}".`);
+    }
+    importance = requestedImportance;
+  }
+
   return {
     id: `${topic}/${id}`,
     topic,
-    topicLabel: toTopicLabel(topic),
+    topicLabel: metadata.label,
     prompt,
     answer,
     tags: listField("tags"),
     difficulty: field("difficulty") || undefined,
+    importance,
     sources: listField("sources"),
   };
 }

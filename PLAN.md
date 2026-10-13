@@ -6,7 +6,7 @@ Turn this repository's frontend interview question bank into a fast, simple stud
 
 ## Existing material
 
-- 27 topic folders hold approximately 365 questions in Markdown, including dedicated JavaScript and TypeScript fundamentals topics added after the initial plan.
+- 28 topic folders hold approximately 385 questions in Markdown, including dedicated JavaScript, TypeScript, and object-oriented programming topics.
 - Answers include prose, lists, tables, and code samples, but their depth and accuracy vary.
 - `docs/references.md` contains general resource links rather than sources linked to individual answers.
 - The project currently has no app, build tooling, or Pages deployment.
@@ -14,10 +14,11 @@ Turn this repository's frontend interview question bank into a fast, simple stud
 ## Product experience
 
 1. Browse the question bank by topic and search question text.
-2. Start a short review session from questions that are due, or focus on questions previously rated weak.
-3. Show one question at a time; reveal its answer only when requested.
-4. After reviewing an answer, self-rate it **Again**, **Hard**, or **Know**. Bring weaker answers back sooner using a small, understandable schedule.
-5. Save progress in versioned browser storage, with a way to reset it. Keep all questions available even when there is no review progress.
+2. Follow an ordered learning path grouped into foundations, interface engineering, quality and delivery, architecture and scale, and senior practice; show importance tiers to guide study time.
+3. Start a short review session from questions that are due, or focus on questions previously rated weak.
+4. Show one question at a time; reveal its answer only when requested.
+5. After reviewing an answer, self-rate it **Again**, **Hard**, or **Know**. Bring weaker answers back sooner using a small, understandable schedule.
+6. Save progress in versioned browser storage, with a way to reset it. Keep all questions available even when there is no review progress.
 
 ## Content and architecture
 
@@ -42,6 +43,7 @@ Turn this repository's frontend interview question bank into a fast, simple stud
 - Migrate topic files in small batches and check that code, lists, and tables render correctly.
 - Review correctness, current framework guidance, clarity, useful answer depth, and attribution. Behavioral questions should invite the learner's own examples rather than imply invented personal experience.
 - Keep JavaScript language/runtime questions distinct from TypeScript's static type-system questions; add practical examples and debugging prompts alongside conceptual questions.
+- Maintain a curated topic catalog with curriculum order, study track, and topic importance; allow individual question files to override their inherited importance.
 
 ### 3. GitHub Pages and contributor workflow
 
