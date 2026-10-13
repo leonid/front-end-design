@@ -124,6 +124,9 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .button-primary:hover { background: #5738cb; }
 .reveal-button { min-width: 150px; }
 .answer-wrap { padding-top: 22px; border-top: 1px solid #efefec; }
+.answer-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.answer-heading .answer-label { margin-bottom: 12px; }
+.hide-answer-button { margin-bottom: 12px; }
 .answer-label { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; color: #6649d0; font-size: 11px; font-weight: 700; }
 .answer-spark { font-size: 16px; }
 .answer-content { color: #50535e; font-size: 12px; line-height: 1.8; overflow-wrap: anywhere; }
@@ -214,6 +217,16 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .button-secondary:hover:not(:disabled) { border-color: #cfc4fa; color: #593bc8; }
 .button:disabled { cursor: default; opacity: .45; }
 .learn-position { color: #858894; font-size: 13px; text-align: center; }
+.quiz-navigation { display: flex; align-items: center; gap: 9px; }
+.shortcut-guide { position: relative; flex-basis: 100%; margin-top: 5px; }
+.shortcut-guide summary { width: fit-content; color: #5e6170; cursor: pointer; font-size: 13px; }
+.shortcut-guide summary:hover { color: #593bc8; }
+.shortcut-guide dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px 18px; max-width: 580px; margin: 12px 0 0; padding: 13px; border: 1px solid #e9e7ef; border-radius: 9px; background: #fff; }
+.shortcut-guide dl > div { display: flex; align-items: center; gap: 9px; }
+.shortcut-guide dt, .shortcut-guide dd { margin: 0; }
+.shortcut-guide dd { color: #626570; font-size: 12px; }
+.shortcut-guide kbd { display: inline-block; min-width: 23px; padding: 3px 6px; border: 1px solid #dedce5; border-radius: 5px; background: #f8f7fb; color: #4e5060; font: 600 11px "SFMono-Regular", Consolas, monospace; text-align: center; }
+.shortcut-guide dt kbd + kbd { margin-left: 3px; }
 .language-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 18px; margin-top: 21px; }
 .language-panel { min-width: 0; padding: 22px; border: 1px solid #e8e6f0; border-radius: 12px; background: #fcfbff; }
 .language-panel[lang="bg"] { border-color: #dce9e1; background: #fbfdfb; }
@@ -252,6 +265,11 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
   .learn-controls { flex-wrap: wrap; }
   .learn-controls .button { padding: 0 11px; }
   .learn-position { order: -1; width: 100%; }
+  .session-bottom { flex-wrap: wrap; }
+  .quiz-navigation { width: 100%; flex-wrap: wrap; }
+  .quiz-navigation .button { flex: 1; }
+  .shortcut-guide { margin-top: 3px; }
+  .shortcut-guide dl { grid-template-columns: 1fr; }
   .language-columns { grid-template-columns: 1fr; gap: 12px; }
   .language-panel { padding: 17px; }
   .language-panel h1 { font-size: 22px; }

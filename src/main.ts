@@ -132,8 +132,32 @@ function finishSession(): void {
   render();
 }
 
-function recordRating(rating: Rating): void {
+function previousQuestion(): void {
+  if (!session || session.index === 0) return;
+  session.index -= 1;
+  session.revealed = session.mode === "learn";
+  render();
+}
+
+function nextQuestion(): void {
   if (!session) return;
+  if (session.index >= session.questions.length - 1) {
+    finishSession();
+    return;
+  }
+  session.index += 1;
+  session.revealed = session.mode === "learn";
+  render();
+}
+
+function toggleAnswer(): void {
+  if (!session || session.mode === "learn") return;
+  session.revealed = !session.revealed;
+  render();
+}
+
+function recordRating(rating: Rating): void {
+  if (!session || !session.revealed) return;
   const current = session.questions[session.index];
   if (!current) return;
 
@@ -335,7 +359,7 @@ function renderSession(): string {
               ).join("")}</div>` : ""}`
             : `<h1>${escapeHtml(currentText.prompt)}</h1>${fallback ? `<div class="notice translation-notice" role="status">${text("translation.fallback")}</div>` : ""}
           ${session.revealed
-            ? `<div class="answer-wrap"><div class="answer-label"><span class="answer-spark">✳</span> ${text("session.answerNotes")}</div><div class="answer-content">${renderAnswer(currentText.answer)}</div>
+            ? `<div class="answer-wrap"><div class="answer-heading"><div class="answer-label"><span class="answer-spark">✳</span> ${text("session.answerNotes")}</div><button class="text-button hide-answer-button" id="toggle-answer">${text("session.hideAnswer")}</button></div><div class="answer-content">${renderAnswer(currentText.answer)}</div>
               ${current.sources.length ? `<div class="source-list"><strong>${text("session.sources")}</strong>${current.sources.map((source) => /^https?:\/\/[^\s]+$/i.test(source)
                 ? `<a href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source)}</a>`
                 : `<span>${escapeHtml(source)}</span>`
@@ -354,7 +378,26 @@ function renderSession(): string {
         <div class="session-bottom">
           ${session.mode === "learn"
             ? `<span>${text("session.readContinue")}</span>`
-            : `<span>${text("session.honest")}</span><button class="text-button" id="skip-question">${text("session.skip")}</button>`}
+            : `<span>${text("session.honest")}</span>`}
+          ${session.mode !== "learn" ? `<div class="quiz-navigation">
+            <button class="button button-secondary" id="previous-question" ${session.index === 0 ? "disabled" : ""}>${text("session.previous")}</button>
+            <button class="button button-secondary" id="next-question">${session.index === session.questions.length - 1 ? text("session.finishSession") : text("session.next")}</button>
+            <button class="text-button" id="skip-question">${text("session.skip")}</button>
+          </div>` : ""}
+          <details class="shortcut-guide">
+            <summary>${text("session.shortcuts")}</summary>
+            <dl>
+              <div><dt><kbd>←</kbd></dt><dd>${text("session.previousShortcut")}</dd></div>
+              <div><dt><kbd>→</kbd></dt><dd>${text("session.nextShortcut")}</dd></div>
+              ${session.mode !== "learn" ? `
+                <div><dt><kbd>R</kbd> / <kbd>Space</kbd></dt><dd>${text("session.toggleAnswer")}</dd></div>
+                <div><dt><kbd>1</kbd> / <kbd>A</kbd></dt><dd>${text("session.againShortcut")}</dd></div>
+                <div><dt><kbd>2</kbd> / <kbd>H</kbd></dt><dd>${text("session.hardShortcut")}</dd></div>
+                <div><dt><kbd>3</kbd> / <kbd>E</kbd></dt><dd>${text("session.knowShortcut")}</dd></div>
+              ` : ""}
+              <div><dt><kbd>Esc</kbd></dt><dd>${text("session.backShortcut")}</dd></div>
+            </dl>
+          </details>
         </div>
       </section>
     </main>
@@ -430,26 +473,16 @@ function render(): void {
   });
   root.querySelector("#end-session")?.addEventListener("click", finishSession);
   root.querySelector("#previous-question")?.addEventListener("click", () => {
-    if (!session || session.index === 0) return;
-    session.index -= 1;
-    session.revealed = true;
-    render();
+    previousQuestion();
   });
   root.querySelector("#next-question")?.addEventListener("click", () => {
-    if (!session) return;
-    if (session.index >= session.questions.length - 1) {
-      finishSession();
-      return;
-    }
-    session.index += 1;
-    session.revealed = true;
-    render();
+    nextQuestion();
   });
   root.querySelector("#reveal-answer")?.addEventListener("click", () => {
-    if (session) session.revealed = true;
-    render();
+    toggleAnswer();
     root.querySelector<HTMLElement>(".rating-prompt")?.focus();
   });
+  root.querySelector("#toggle-answer")?.addEventListener("click", toggleAnswer);
   root.querySelector("#skip-question")?.addEventListener("click", () => {
     if (!session) return;
     session.index += 1;
@@ -481,5 +514,43 @@ function isStudyMode(value: string | undefined): value is StudyMode {
 function isRating(value: string | undefined): value is Rating {
   return value === "again" || value === "hard" || value === "know";
 }
+
+function isInteractiveTarget(target: EventTarget | null): boolean {
+  return target instanceof Element
+    && Boolean(target.closest("input, textarea, select, button, a, summary, [contenteditable='true']"));
+}
+
+document.addEventListener("keydown", (event) => {
+  if (!session || event.altKey || event.ctrlKey || event.metaKey || isInteractiveTarget(event.target)) return;
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    finishSession();
+    return;
+  }
+  if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    previousQuestion();
+    return;
+  }
+  if (event.key === "ArrowRight") {
+    event.preventDefault();
+    nextQuestion();
+    return;
+  }
+  if (session.mode === "learn") return;
+
+  if (event.key.toLowerCase() === "r" || event.code === "Space") {
+    event.preventDefault();
+    toggleAnswer();
+    return;
+  }
+  if (!session.revealed) return;
+
+  const key = event.key.toLowerCase();
+  if (key === "1" || key === "a") recordRating("again");
+  if (key === "2" || key === "h") recordRating("hard");
+  if (key === "3" || key === "e") recordRating("know");
+});
 
 render();
