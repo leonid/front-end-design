@@ -6,7 +6,7 @@ Turn this repository's frontend interview question bank into a fast, simple stud
 
 ## Existing material
 
-- About 25 topic folders hold approximately 300 questions in Markdown.
+- 27 topic folders hold approximately 365 questions in Markdown, including dedicated JavaScript and TypeScript fundamentals topics added after the initial plan.
 - Answers include prose, lists, tables, and code samples, but their depth and accuracy vary.
 - `docs/references.md` contains general resource links rather than sources linked to individual answers.
 - The project currently has no app, build tooling, or Pages deployment.
@@ -41,6 +41,7 @@ Turn this repository's frontend interview question bank into a fast, simple stud
 - Document how to add a topic and question; define the individual-question Markdown format.
 - Migrate topic files in small batches and check that code, lists, and tables render correctly.
 - Review correctness, current framework guidance, clarity, useful answer depth, and attribution. Behavioral questions should invite the learner's own examples rather than imply invented personal experience.
+- Keep JavaScript language/runtime questions distinct from TypeScript's static type-system questions; add practical examples and debugging prompts alongside conceptual questions.
 
 ### 3. GitHub Pages and contributor workflow
 

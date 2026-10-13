@@ -38,6 +38,8 @@ Write the answer here in Markdown. Code blocks, tables, and lists are supported.
 
 Continue numbering within each file and put a blank line between the question heading and its answer. Add a new topic by creating a folder with a `questions.md` file. Question progress IDs are derived from the topic and question text; changing a question's wording starts its progress over, while rearranging questions does not.
 
+Dedicated language topic files are available in `questions/javascript-language-fundamentals/` and `questions/typescript-fundamentals/`. Add new JavaScript or TypeScript fundamentals there instead of mixing them into the older combined React-oriented language topic.
+
 New or migrated content can also use one file per question at `questions/<topic>/<filename>.md`:
 
 ```md
