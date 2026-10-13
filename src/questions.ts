@@ -120,9 +120,7 @@ for (const question of loadedQuestions) {
   ids.add(question.id);
 }
 
-export const questions = loadedQuestions.sort(
-  (a, b) => a.topicLabel.localeCompare(b.topicLabel) || a.id.localeCompare(b.id),
-);
+export const questions = loadedQuestions;
 
 export function renderAnswer(markdown: string): string {
   return DOMPurify.sanitize(marked.parse(markdown, { async: false }));

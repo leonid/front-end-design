@@ -9,7 +9,7 @@ import {
 } from "./progress";
 import "./style.css";
 
-type StudyMode = "all" | "due" | "weak" | "topic";
+type StudyMode = "all" | "due" | "weak" | "topic" | "learn";
 
 interface Session {
   questions: typeof questions;
@@ -69,20 +69,20 @@ function startSession(mode: StudyMode, topic?: string): void {
     ? reviewSets.due
     : mode === "weak"
       ? reviewSets.weak
-      : mode === "topic"
+      : mode === "topic" || mode === "learn"
         ? questions.filter((question) => question.topic === topic)
         : questions;
   const available = filteredQuestions(source);
-  const ordered = mode === "due" || mode === "weak"
+  const ordered = mode === "due" || mode === "weak" || mode === "learn"
     ? available
     : [...available].sort(() => Math.random() - 0.5);
 
   session = {
-    questions: ordered.slice(0, 10),
+    questions: mode === "learn" ? ordered : ordered.slice(0, 10),
     mode,
     topic,
     index: 0,
-    revealed: false,
+    revealed: mode === "learn",
   };
   render();
 }
@@ -135,7 +135,7 @@ function renderSidebar(): string {
       </button>
       <div class="topic-list">
         ${topics.map((topic) => `
-          <button class="nav-item topic-item" data-topic="${escapeHtml(topic.slug)}">
+          <button class="nav-item topic-item" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="learn">
             <span>${escapeHtml(topic.label)}</span><span class="nav-count">${topic.count}</span>
           </button>
         `).join("")}
@@ -179,7 +179,7 @@ function renderHome(): string {
         <article class="stat-card"><span class="stat-icon green">◷</span><span class="stat-label">PRACTICED</span><strong>${seen}</strong><span class="stat-foot">questions reviewed so far</span></article>
       </section>
       <div class="section-heading">
-        <div><div class="eyebrow">PICK UP WHERE YOU LIKE</div><h2>Explore the library</h2></div>
+        <div><div class="eyebrow">LEARN FIRST, PRACTICE WHEN READY</div><h2>Explore the library</h2></div>
         <label class="search-box"><span aria-hidden="true">⌕</span><span class="visually-hidden">Search questions</span><input id="question-search" type="search" placeholder="Search questions" value="${escapeHtml(searchTerm)}" /></label>
       </div>
       ${searchTerm.trim()
@@ -193,11 +193,14 @@ function renderHome(): string {
           </section>`
         : `<section class="topic-grid" aria-label="Question topics">
             ${topics.map((topic, index) => `
-              <button class="topic-card" data-topic="${escapeHtml(topic.slug)}">
+              <article class="topic-card">
                 <span class="topic-card-icon tone-${index % 5}" aria-hidden="true">${["◈", "⌘", "▱", "✳", "◇"][index % 5]}</span>
                 <span class="topic-card-copy"><strong>${escapeHtml(topic.label)}</strong><small>${topic.count} questions</small></span>
-                <span class="topic-arrow" aria-hidden="true">↗</span>
-              </button>
+                <span class="topic-actions">
+                  <button class="topic-action learn-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="learn">Learn</button>
+                  <button class="topic-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="topic">Quiz</button>
+                </span>
+              </article>
             `).join("")}
           </section>`
       }
@@ -211,6 +214,8 @@ function renderSession(): string {
   if (!current) return renderHome();
   const modeLabel = session.mode === "topic"
     ? current.topicLabel
+    : session.mode === "learn"
+      ? `Learn · ${current.topicLabel}`
     : session.mode === "weak"
       ? "Weak areas"
       : session.mode === "due"
@@ -233,25 +238,32 @@ function renderSession(): string {
           <div class="question-topline"><span class="topic-pill">${escapeHtml(current.topicLabel)}</span><span class="question-number">${session.index + 1} / ${session.questions.length}</span></div>
           <h1>${escapeHtml(current.prompt)}</h1>
           ${session.revealed
-            ? `<div class="answer-wrap"><div class="answer-label"><span class="answer-spark">✳</span> Answer notes</div><div class="answer-content">${renderAnswer(current.answer)}</div>
+            ? `<div class="answer-wrap"><div class="answer-label"><span class="answer-spark">✳</span> ${session.mode === "learn" ? "Study notes" : "Answer notes"}</div><div class="answer-content">${renderAnswer(current.answer)}</div>
               ${current.sources.length ? `<div class="source-list"><strong>Sources</strong>${current.sources.map((source) => /^https?:\/\/[^\s]+$/i.test(source)
                 ? `<a href="${escapeHtml(source)}" target="_blank" rel="noopener noreferrer">${escapeHtml(source)}</a>`
                 : `<span>${escapeHtml(source)}</span>`
               ).join("")}</div>` : ""}
               </div>
-              <div class="rating-prompt" tabindex="-1">How did that feel?</div>
+              ${session.mode === "learn"
+                ? `<div class="learn-controls">
+                    <button class="button button-secondary" id="previous-question" ${session.index === 0 ? "disabled" : ""}>← Previous</button>
+                    <span class="learn-position">Question ${session.index + 1} of ${session.questions.length}</span>
+                    <button class="button button-primary" id="next-question">${session.index === session.questions.length - 1 ? "Finish topic" : "Next question"} <span aria-hidden="true">→</span></button>
+                  </div>`
+                : `<div class="rating-prompt" tabindex="-1">How did that feel?</div>
               <div class="rating-grid">
                 <button class="rating-button rating-again" data-rating="again"><strong>Again</strong><span>Need to revisit</span></button>
                 <button class="rating-button rating-hard" data-rating="hard"><strong>Hard</strong><span>Getting there</span></button>
                 <button class="rating-button rating-know" data-rating="know"><strong>Know it</strong><span>Feels familiar</span></button>
-              </div>`
+              </div>`}`
             : `<div class="think-prompt"><span aria-hidden="true">✎</span><span>Take a moment to form your own answer before you reveal it.</span></div>
               <button class="button button-primary reveal-button" id="reveal-answer">Reveal answer <span aria-hidden="true">→</span></button>`
           }
         </article>
         <div class="session-bottom">
-          <span>Be honest with yourself — this makes review more useful.</span>
-          <button class="text-button" id="skip-question">Skip for now</button>
+          ${session.mode === "learn"
+            ? `<span>Read through the explanation, then continue when you're ready.</span>`
+            : `<span>Be honest with yourself — this makes review more useful.</span><button class="text-button" id="skip-question">Skip for now</button>`}
         </div>
       </section>
     </main>
@@ -277,7 +289,12 @@ function render(): void {
     });
   });
   root.querySelectorAll<HTMLButtonElement>("[data-topic]").forEach((button) => {
-    button.addEventListener("click", () => startSession("topic", button.dataset.topic));
+    button.addEventListener("click", () => {
+      const mode = button.dataset.topicMode;
+      if ((mode === "learn" || mode === "topic") && button.dataset.topic) {
+        startSession(mode, button.dataset.topic);
+      }
+    });
   });
   root.querySelectorAll<HTMLButtonElement>("[data-question]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -304,6 +321,22 @@ function render(): void {
     render();
   });
   root.querySelector("#end-session")?.addEventListener("click", finishSession);
+  root.querySelector("#previous-question")?.addEventListener("click", () => {
+    if (!session || session.index === 0) return;
+    session.index -= 1;
+    session.revealed = true;
+    render();
+  });
+  root.querySelector("#next-question")?.addEventListener("click", () => {
+    if (!session) return;
+    if (session.index >= session.questions.length - 1) {
+      finishSession();
+      return;
+    }
+    session.index += 1;
+    session.revealed = true;
+    render();
+  });
   root.querySelector("#reveal-answer")?.addEventListener("click", () => {
     if (session) session.revealed = true;
     render();
@@ -334,7 +367,7 @@ function render(): void {
 }
 
 function isStudyMode(value: string | undefined): value is StudyMode {
-  return value === "all" || value === "due" || value === "weak" || value === "topic";
+  return value === "all" || value === "due" || value === "weak" || value === "topic" || value === "learn";
 }
 
 function isRating(value: string | undefined): value is Rating {

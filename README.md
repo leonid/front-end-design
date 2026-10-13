@@ -17,8 +17,11 @@ Create a production build with `npm run build`; preview it locally with `npm run
 
 - **Quick review** contains questions whose next review time has arrived.
 - **Weak areas** contains questions last rated **Again** or **Hard**.
-- **Explore the library** lets you search questions or start a practice session from any topic.
-- Each session contains up to 10 questions. Answers stay hidden until revealed.
+- **Learn** opens a topic in its original question order with answers visible and Previous/Next navigation; finish a topic before moving on.
+- **Quiz** starts a short practice session from a topic, with answers hidden until revealed.
+- **Explore the library** lets you search questions or choose Learn or Quiz for any topic.
+- Quiz and review sessions contain up to 10 questions; learning mode walks through all questions in the selected topic.
+- Quiz answers stay hidden until revealed. Learning mode shows the answer notes alongside each question.
 - Progress is stored in this browser only. **Again** schedules a question in 10 minutes, **Hard** in one day, and **Know it** in three days. Reset progress from the home screen.
 
 This is a self-study aid, not a scoring system; answer quality and confidence are for you to judge.
