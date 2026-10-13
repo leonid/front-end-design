@@ -23,13 +23,13 @@ Create a production build with `npm run build`; preview it locally with `npm run
 
 - **Quick review** contains questions whose next review time has arrived.
 - **Weak areas** contains questions last rated **Again** or **Hard**.
-- **Learn** opens a topic in its original question order with English and Bulgarian question-and-answer cards side by side and Previous/Next navigation; cards stack on narrower screens.
+- **Learn** opens a topic in its original question order with English and Bulgarian question-and-answer cards side by side and Previous/Next navigation; viewed questions are saved locally and each topic shows its progress in the library. Cards stack on narrower screens.
 - **Quiz** starts a short practice session from a topic, with answers hidden until revealed.
 - **Explore the library** lets you search questions or choose Learn or Quiz for any topic.
 - Quiz and review sessions contain up to 10 questions; learning mode walks through all questions in the selected topic.
 - Quiz answers stay hidden until revealed. Learning mode shows English and Bulgarian questions and answers alongside each other; on narrower screens, the cards stack vertically.
 - During a session, use **← / →** for previous/next and **Esc** to return. In quiz/review, **R** or **Space** toggles the answer, then **1 / A** rates Again, **2 / H** rates Hard, and **3 / E** rates Know it. A shortcut guide is available in-session.
-- Progress is stored in this browser only. **Again** schedules a question in 10 minutes, **Hard** in one day, and **Know it** in three days. Reset progress from the home screen.
+- Learning and review progress is stored in this browser only. Viewed questions count toward topic completion; **Again** schedules a question in 10 minutes, **Hard** in one day, and **Know it** in three days. Reset all progress from the home screen.
 
 This is a self-study aid, not a scoring system; answer quality and confidence are for you to judge.
 

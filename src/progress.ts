@@ -12,6 +12,7 @@ export interface ReviewRecord {
 export type Progress = Record<string, ReviewRecord>;
 
 const STORAGE_KEY = "frontend-interview-review:v1";
+const LEARNED_QUESTIONS_KEY = "frontend-interview-learned:v1";
 const REVIEW_DELAYS: Record<Rating, number> = {
   again: 10 * 60 * 1000,
   hard: 24 * 60 * 60 * 1000,
@@ -52,6 +53,18 @@ export function loadProgress(): Progress {
   return progress;
 }
 
+export function loadLearnedQuestions(): Set<string> {
+  const stored = localStorage.getItem(LEARNED_QUESTIONS_KEY);
+  if (!stored) return new Set();
+
+  const parsed: unknown = JSON.parse(stored);
+  if (!Array.isArray(parsed) || !parsed.every((questionId) => typeof questionId === "string")) {
+    throw new Error("Saved learning progress has an invalid format.");
+  }
+
+  return new Set(parsed);
+}
+
 export function saveRating(progress: Progress, questionId: string, rating: Rating): Progress {
   const now = Date.now();
   const updated = {
@@ -67,8 +80,17 @@ export function saveRating(progress: Progress, questionId: string, rating: Ratin
   return updated;
 }
 
+export function saveViewedQuestion(viewed: Set<string>, questionId: string): Set<string> {
+  if (viewed.has(questionId)) return viewed;
+
+  const updated = new Set(viewed).add(questionId);
+  localStorage.setItem(LEARNED_QUESTIONS_KEY, JSON.stringify([...updated]));
+  return updated;
+}
+
 export function clearProgress(): void {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(LEARNED_QUESTIONS_KEY);
 }
 
 export function getReviewSets(questions: Question[], progress: Progress, now = Date.now()) {

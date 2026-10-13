@@ -12,8 +12,10 @@ import {
 import {
   clearProgress,
   getReviewSets,
+  loadLearnedQuestions,
   loadProgress,
   saveRating,
+  saveViewedQuestion,
   type Progress,
   type Rating,
 } from "./progress";
@@ -36,6 +38,7 @@ function getRoot(): HTMLDivElement {
 }
 
 let progress: Progress = {};
+let learnedQuestions = new Set<string>();
 let progressWarning = "";
 let searchTerm = "";
 let session: Session | null = null;
@@ -50,6 +53,7 @@ function questionCopy(question: typeof questions[number]) {
 
 try {
   progress = loadProgress();
+  learnedQuestions = loadLearnedQuestions();
 } catch (error) {
   progressWarning = error instanceof Error
     ? error.message
@@ -115,6 +119,7 @@ function startSession(mode: StudyMode, topic?: string): void {
     revealed: mode === "learn",
   };
   if (mode === "learn") {
+    markCurrentQuestionViewed();
     getRoot().innerHTML = `<main class="main-content"><p role="status">${text("app.loading")}</p></main>`;
     void loadQuestionTranslations("bg")
       .then(render)
@@ -132,10 +137,26 @@ function finishSession(): void {
   render();
 }
 
+function markCurrentQuestionViewed(): void {
+  if (!session || session.mode !== "learn") return;
+  const current = session.questions[session.index];
+  if (!current || learnedQuestions.has(current.id)) return;
+
+  try {
+    learnedQuestions = saveViewedQuestion(learnedQuestions, current.id);
+    progressWarning = "";
+  } catch (error) {
+    progressWarning = error instanceof Error
+      ? text("progress.saveErrorDetail", { message: error.message })
+      : text("progress.saveError");
+  }
+}
+
 function previousQuestion(): void {
   if (!session || session.index === 0) return;
   session.index -= 1;
   session.revealed = session.mode === "learn";
+  markCurrentQuestionViewed();
   render();
 }
 
@@ -147,6 +168,7 @@ function nextQuestion(): void {
   }
   session.index += 1;
   session.revealed = session.mode === "learn";
+  markCurrentQuestionViewed();
   render();
 }
 
@@ -278,14 +300,31 @@ function renderHome(): string {
                 <div class="track-heading"><div><h3>${escapeHtml(localized.label)}</h3><p>${escapeHtml(localized.description)}</p></div></div>
                 <div class="topic-grid">
                   ${trackTopics.map((topic, index) => `
+                    ${(() => {
+                      const topicQuestions = questions.filter((question) => question.topic === topic.slug);
+                      const viewedCount = topicQuestions.filter((question) => learnedQuestions.has(question.id)).length;
+                      const isComplete = viewedCount === topic.count;
+                      const progressLabel = isComplete
+                        ? text("home.topicComplete")
+                        : text("home.topicProgress", { viewed: viewedCount, total: topic.count });
+                      return `
                     <article class="topic-card">
                       <span class="topic-card-icon tone-${index % 5}" aria-hidden="true">${["◈", "⌘", "▱", "✳", "◇"][index % 5]}</span>
-                      <span class="topic-card-copy"><strong>${escapeHtml(topicLabel(topic.slug, topic.label))}</strong><small>${text("home.questionCount", { count: topic.count })} · ${priorityBadge(topic.importance)}</small></span>
+                      <span class="topic-card-copy">
+                        <strong>${escapeHtml(topicLabel(topic.slug, topic.label))}</strong>
+                        <small>${text("home.questionCount", { count: topic.count })} · ${priorityBadge(topic.importance)}</small>
+                        <span class="topic-progress-label">${progressLabel}</span>
+                        <span class="topic-progress-track" role="progressbar" aria-label="${escapeHtml(progressLabel)}" aria-valuemin="0" aria-valuemax="${topic.count}" aria-valuenow="${viewedCount}">
+                          <span style="width:${(viewedCount / topic.count) * 100}%"></span>
+                        </span>
+                      </span>
                       <span class="topic-actions">
                         <button class="topic-action learn-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="learn">${text("home.learn")}</button>
                         <button class="topic-action" data-topic="${escapeHtml(topic.slug)}" data-topic-mode="topic">${text("home.quiz")}</button>
                       </span>
                     </article>
+                      `;
+                    })()}
                   `).join("")}
                 </div>
               </section>`;
@@ -487,6 +526,7 @@ function render(): void {
     if (!session) return;
     session.index += 1;
     session.revealed = false;
+    markCurrentQuestionViewed();
     if (session.index >= session.questions.length) session = null;
     render();
   });
